@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>User Account Page</h2>
+<p>Username: {{ username }}</p>
+{% if photo %}
+<img src="{{ photo }}" alt="User photo">
+{% endif %}
+
+
+<h3>Update Account</h3>
+
+<form action="/update_account" method="post" enctype="multipart/form-data">
+  <label for="username">New Username:</label><br>
+  <input type="text" id="username" name="username" value="{{ username }}"><br>
+  <label for="photo">New Photo:</label><br>
+  <input type="file" id="photo" name="photo">
+  <input type="submit" value="Update">
+</form>
+
+</body>
+</html>
