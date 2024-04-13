@@ -1,34 +1,28 @@
 from fastapi import FastAPI, Request, Form
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi import UploadFile, File
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
 import aiofiles
 import re
 import shutil
+import auth.schemas as schemas
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates/")
 
 
-class User:
-    def __init__(self):
-        self.password = None
-        self.username = None
-
-    def init(self, username: str, password: str):
-        self.username = username
-        self.password = password
-
+@app.get("/", response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request} )
 
 def check_password(password: str):
     # Password should at least be 8 characters long, have a number, an uppercase and a lowercase letter,
     # and a special character
+    # TODO: for debugging only!
+    return True
     return len(password) >= 8 and re.search(r'\d', password) is not None and re.search(r'[A-Z]',
-                                                                                       password) is not None and re.search(
-        r'[a-z]', password) is not None and re.search(r'\W', password) is not None
-
-
+                                                                                       password) is not None and re.search( r'[a-z]', password) is not None and re.search(r'\W', password) is not None
 @app.get("/signup", response_class=HTMLResponse)
 async def signup_form(request: Request):
     return templates.TemplateResponse("auth/signup.html", {"request": request})
@@ -36,6 +30,10 @@ async def signup_form(request: Request):
 
 @app.post("/signup")
 async def signup(request: Request, username: str = Form(...), password: str = Form(...)):
+    #TODO: use this User
+    user = schemas.User(username=username, password=password)
+    _ = user
+
     async with aiofiles.open('users.txt', mode='r') as file:
         users = [line.split(":")[0] for line in await file.readlines()]
     if username in users:
@@ -60,13 +58,17 @@ async def login_form(request: Request):
 
 @app.post("/signin")
 async def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    #TODO: use this User
+    user = schemas.User(username=username, password=password)
+    _ = user
+
     async with aiofiles.open('users.txt', mode='r') as file:
         users = [line.strip().split(":") for line in await file.readlines()]
-    for user in users:
-        if user[0] == username and user[1] == password:
-            return RedirectResponse(url='/internal', status_code=303)
+        for user in users:
+            if user[0] == username and user[1] == password:
+                return RedirectResponse(url='/internal', status_code=303)
     return templates.TemplateResponse('auth/login.html',
-                                      {"request": request, "error": "Incorrect username or password."})
+                                       {"request": request, "error": "Incorrect username or password."})
 
 
 @app.get("/internal", response_class=HTMLResponse)

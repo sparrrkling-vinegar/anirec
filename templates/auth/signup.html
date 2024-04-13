@@ -1,18 +1,35 @@
-<!DOCTYPE html>
-<html>
-<body>
-<h2>Signup Form</h2>
+{% extends "base.html" %}
 
-<form action="/signup" method="post">
-  <label for="username">Username:</label><br>
-  <input type="text" id="username" name="username"><br>
-  <label for="password">Password:</label><br>
-  <input type="password" id="password" name="password"><br>
-  {% if error %}
-  <p style="color: red;">{{ error }}</p>
-  {% endif %}
-  <input type="submit" value="Submit">
-</form>
+{% block title %}
+<title>New user</title>
+{% endblock %}
 
-</body>
-</html>
+{% block content %}
+
+<div class="container">
+    <h1 class="display-5">Welcome</h1>
+    <form action="/signup" method="post">
+
+      <!-- Username input -->
+      <div data-mdb-input-init class="form-outline mb-4">
+        <input type="username" id="form2Example1" name="username" class="form-control" required />
+        <label class="form-label" for="form2Example1">Username</label>
+      </div>
+
+      <!-- Password input -->
+      <div data-mdb-input-init class="form-outline mb-4">
+        <input type="password" id="form2Example2" name="password" class="form-control" required />
+        <label class="form-label" for="form2Example2">Password</label>
+      </div>
+
+      <!-- Submit button -->
+      <input type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4" value="Sign in">
+    
+      {% if error %}
+          <p style="color: red;">{{ error }}</p>
+      {% endif %}
+
+    </form>
+</div>
+
+{% endblock %}
