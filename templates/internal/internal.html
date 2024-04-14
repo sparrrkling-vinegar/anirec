@@ -1,12 +1,11 @@
-<!DOCTYPE html>
-<html>
-<body>
+{% extends "base_internal.html" %}
 
-<h2>Welcome to Internal Page!</h2>
-<p>Enjoy your stay.</p>
+{% block title %}
+<title>Internal Page</title>
+{% endblock %}
 
-<a href="/logout" >Logout</a>
-<a href="/account">Click here to view your account details</a>
-
-</body>
-</html>
+{% block content %}
+<div class="container mt-5">
+    <h2>Welcome to Internal Page!</h2>
+</div>
+{% endblock %}

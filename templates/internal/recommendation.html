@@ -1,0 +1,54 @@
+{% extends "base_internal.html" %}
+
+{% block title %}
+<title>Recommendation Page</title>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5 text-center">
+  <h2>Get Recommendations</h2>
+  <button id="generateBtn" class="btn btn-primary mt-3 mb-4">
+    Generate Recommendation
+  </button>
+
+  <div id="output" class="mt-4">
+    <!-- Placeholder for output -->
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const generateBtn = document.getElementById('generateBtn');
+  const output = document.getElementById('output');
+
+  generateBtn.addEventListener('click', () => {
+    fetch('/generate_recommendation', {
+      method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+      output.innerHTML = data.map((item, index) =>
+        `<div class="d-flex justify-content-between align-items-center">
+          <p>${item}</p>
+          <button onclick="postNice(${index})" class="btn btn-success btn-sm">Nice</button>
+        </div>`
+      ).join('');
+    })
+    .catch(() => {
+      output.innerHTML = 'An error occurred!';
+    });
+  });
+
+  function postNice(index) {
+    fetch('/nice_anime', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({index: index})
+    }).then(response => console.log(response))
+    .catch(err => console.error(err));
+  }
+</script>
+{% endblock %}

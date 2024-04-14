@@ -3,11 +3,15 @@ from fastapi import UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 import aiofiles
+from typing import List
 import re
-import shutil
+from fastapi.staticfiles import StaticFiles
 import auth.schemas as schemas
+from pydantic import BaseModel
+
 
 app = FastAPI()
+app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
 
 templates = Jinja2Templates(directory="templates/")
 
@@ -78,41 +82,59 @@ async def internal(request: Request):
 
 @app.get("/logout")
 async def logout():
-    return RedirectResponse(url='/signin', status_code=303)
+    return RedirectResponse(url='/', status_code=303)
 
 
 def get_user_data():
-    return "rmol", "user_photos/rmol.png"
+    return "rmol", "/user_photos/rmol.png"
 
 
 @app.get("/account", response_class=HTMLResponse)
 async def account(request: Request):
     username, user_photo_path = get_user_data()
     return templates.TemplateResponse(
-        "account/account.html", {"request": request, "username": username, "photo": user_photo_path or None})
+        "internal/account.html", {"request": request, "username": username, "photo": user_photo_path or None})
 
 
 @app.post("/update_account")
 async def update_account(username: str = Form(...), photo: UploadFile = File(...)):
-    async with aiofiles.open('users_photos.txt', mode='r') as file:
-        users = [(user_name, user_photo.strip())
-                 for user_name, user_photo in (line.split(":") for line in await file.readlines())]
-    for i, user in enumerate(users):
-        if user[0] == username:
-            user_photo_path = f"user_photos/{photo.filename}"
-            with open(user_photo_path, 'wb') as buffer:
-                shutil.copyfileobj(photo.file, buffer)
-            users[i] = (username, user_photo_path)
-            break
-    else:
-        return {
-            "status": False,
-            "detail": "User does not exist"
-        }
-    async with aiofiles.open('users_photos.txt', mode='w') as file:
-        for user_name, user_photo in users:
-            await file.write(f'{user_name}:{user_photo}\n')
     return {
         "status": True,
         "detail": "User account has been updated"
     }
+
+
+@app.get("/recommendation", response_class=HTMLResponse)
+async def get_page(request: Request):
+    return templates.TemplateResponse("internal/recommendation.html", {"request": request})
+
+
+@app.post("/generate_recommendation")
+async def generate_recommendation() -> List[str]:
+    recommendations = [f"Recommendation {i}" for i in range(1, 11)]
+    return recommendations
+
+class Nice(BaseModel):
+    index: int
+
+class Search(BaseModel):
+    search: str
+
+@app.post("/nice_anime")
+async def post_nice(nice: Nice):
+    print(f"Nice button clicked on anime {nice.index}")
+    return {}
+
+texts = [f"Text {i}" for i in range(10)]
+@app.get("/search_page", response_class=HTMLResponse)
+async def get_page(request: Request):
+    return templates.TemplateResponse("internal/search.html", {"request": request})
+
+@app.post("/search")
+async def search(request_data: Search) -> List[str]:
+    search_term = request_data.search
+    result = []
+    for text in texts:
+        if search_term.lower() in text.lower():
+            result.append(text)
+    return result
