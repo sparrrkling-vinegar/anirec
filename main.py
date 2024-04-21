@@ -10,7 +10,7 @@ import auth.schemas as schemas
 from pydantic import BaseModel
 
 from svc.anime import get_anime_by_name
-from svc import schemas
+from svc import schemas as svc_schemas
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -28,9 +28,11 @@ def check_password(password: str):
     # and a special character
     # TODO: for debugging only!
     return True
-    return len(password) >= 8 and re.search(r'\d', password) is not None and re.search(r'[A-Z]',
-                                                                                       password) is not None and re.search(
-        r'[a-z]', password) is not None and re.search(r'\W', password) is not None
+    return (len(password) >= 8
+            and re.search(r'\d', password) is not None
+            and re.search(r'[A-Z]', password) is not None
+            and re.search(r'[a-z]', password) is not None
+            and re.search(r'\W', password) is not None)
 
 
 @app.get("/signup", response_class=HTMLResponse)
@@ -144,5 +146,5 @@ async def get_page(request: Request):
 
 
 @app.post("/search")
-async def search(request_data: Search) -> List[schemas.Anime]:
+async def search(request_data: Search) -> List[svc_schemas.Anime]:
     return get_anime_by_name(request_data.search)
