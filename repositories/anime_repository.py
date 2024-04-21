@@ -5,7 +5,7 @@ from typing import List, Any
 from utils import convert_anime
 
 
-class AnimeService:
+class AnimeRepository:
     db = get_db()
 
     def create(self, anime: schemas.CreateAnime):
@@ -90,7 +90,7 @@ class AnimeService:
 
 
 if __name__ == "__main__":
-    anime_service = AnimeService()
+    anime_service = AnimeRepository()
     anime_service.create(
         schemas.CreateAnime(
             mal_id=1,
