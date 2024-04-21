@@ -34,10 +34,12 @@ class UserRepository:
         self.db.delete(db_user)
         self.db.commit()
 
-    def edit(self, user_info: schemas.EditUser):
-        db_user = self.db.query(User).filter(User.username == user_info.username).first()
+    def edit(self, username: str, user_info: schemas.EditUser):
+        db_user = self.db.query(User).filter(User.username == username).first()
         if db_user is None:
             return
+        if user_info.username is not None:
+            db_user.username = user_info.username
         if user_info.password is not None:
             db_user.password = user_info.password  # TODO: use hash instead
         if user_info.icon is not None:

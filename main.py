@@ -2,7 +2,6 @@ from fastapi import FastAPI, Request, Form
 from fastapi import UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-import aiofiles
 from typing import List
 import re
 from fastapi.staticfiles import StaticFiles
@@ -10,7 +9,7 @@ import auth.schemas as auth_schemas
 from pydantic import BaseModel
 
 from services.user_service import UserServiceFactory, UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword
-from svc.anime import get_anime_by_name
+from svc.anime import get_anime_by_name, get_random_anime
 from svc import schemas as svc_schemas
 import schemas
 
@@ -96,19 +95,39 @@ async def logout():
     return RedirectResponse(url='/', status_code=303)
 
 
-def get_user_data():
-    return "rmol", "/user_photos/rmol.png"
+# TODO: switch to token, do not use path
+@app.get("/account/{username}", response_class=HTMLResponse)
+async def account(request: Request, username: str):
+    user_service = UserServiceFactory.make()
 
+    try:
+        user = user_service.get(username=username)
+    except UserDoesNotExist:
+        return "User does not exist."
 
-@app.get("/account", response_class=HTMLResponse)
-async def account(request: Request):
-    username, user_photo_path = get_user_data()
     return templates.TemplateResponse(
-        "internal/account.html", {"request": request, "username": username, "photo": user_photo_path or None})
+        # for debugging user.icon should be '/user_photos/rmol.png'
+        "internal/account.html", {"request": request, "username": user.username, "photo": user.icon or None})
 
 
-@app.post("/update_account")
-async def update_account(username: str = Form(...), photo: UploadFile = File(...)):
+# TODO: switch to token, do not use path
+@app.post("/update_account/{user}")
+async def update_account(user: str, username: str = Form(...), photo: UploadFile = File(...)):
+    user_service = UserServiceFactory.make()
+
+    try:
+        user_service.update(
+            user,
+            schemas.EditUser(
+                username=username,
+                icon=None,
+                password=None  # TODO: implement front for password change
+            )
+        )
+    except WeakPassword:
+        return "Weak password"  # TODO: add template rendering or redirect
+    except UserDoesNotExist:
+        return "User does not"  # TODO: add template rendering or redirect
     return {
         "status": True,
         "detail": "User account has been updated"
@@ -121,9 +140,8 @@ async def get_page(request: Request):
 
 
 @app.post("/generate_recommendation")
-async def generate_recommendation() -> List[str]:
-    recommendations = [f"Recommendation {i}" for i in range(1, 11)]
-    return recommendations
+async def generate_recommendation() -> List[svc_schemas.Anime]:
+    return get_random_anime(limit=10)
 
 
 class Nice(BaseModel):

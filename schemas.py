@@ -42,7 +42,7 @@ class EditAnime(BaseModel):
 
 class UserBase(BaseModel):
     username: str
-    icon: Optional[int] = None
+    icon: Optional[str] = None
     password: str
 
 
@@ -58,6 +58,6 @@ class User(UserBase):
 
 
 class EditUser(BaseModel):
-    username: Optional[str]
+    username: Optional[str] = None
     icon: Optional[str] = None
     password: Optional[str] = None

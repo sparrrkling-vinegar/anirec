@@ -52,6 +52,23 @@ class UserService:
             raise WrongPassword
         return user
 
+    def get(self, username: str) -> schemas.User:
+        user = self.__user_repository.get(username)
+        # TODO: perform image decoding
+        if user is None:
+            raise UserDoesNotExist
+        return user
+
+    def update(self, username: str, user_info: schemas.EditUser) -> schemas.User:
+        user = self.__user_repository.get(username)
+        if user is None:
+            raise UserDoesNotExist
+        if user_info.password is not None and check_password(user_info.password):
+            raise WeakPassword
+        self.__user_repository.edit(username, user_info)
+
+        return self.__user_repository.get(username if user_info.username is None else user_info.username)
+
 
 class UserServiceFactory:
     @staticmethod
