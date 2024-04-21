@@ -9,6 +9,8 @@ from fastapi.staticfiles import StaticFiles
 import auth.schemas as schemas
 from pydantic import BaseModel
 
+from svc.anime import get_anime_by_name
+from svc import schemas
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -18,7 +20,8 @@ templates = Jinja2Templates(directory="templates/")
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request} )
+    return templates.TemplateResponse("index.html", {"request": request})
+
 
 def check_password(password: str):
     # Password should at least be 8 characters long, have a number, an uppercase and a lowercase letter,
@@ -26,7 +29,10 @@ def check_password(password: str):
     # TODO: for debugging only!
     return True
     return len(password) >= 8 and re.search(r'\d', password) is not None and re.search(r'[A-Z]',
-                                                                                       password) is not None and re.search( r'[a-z]', password) is not None and re.search(r'\W', password) is not None
+                                                                                       password) is not None and re.search(
+        r'[a-z]', password) is not None and re.search(r'\W', password) is not None
+
+
 @app.get("/signup", response_class=HTMLResponse)
 async def signup_form(request: Request):
     return templates.TemplateResponse("auth/signup.html", {"request": request})
@@ -34,7 +40,7 @@ async def signup_form(request: Request):
 
 @app.post("/signup")
 async def signup(request: Request, username: str = Form(...), password: str = Form(...)):
-    #TODO: use this User
+    # TODO: use this User
     user = schemas.User(username=username, password=password)
     _ = user
 
@@ -62,7 +68,7 @@ async def login_form(request: Request):
 
 @app.post("/signin")
 async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    #TODO: use this User
+    # TODO: use this User
     user = schemas.User(username=username, password=password)
     _ = user
 
@@ -72,7 +78,7 @@ async def login(request: Request, username: str = Form(...), password: str = For
             if user[0] == username and user[1] == password:
                 return RedirectResponse(url='/internal', status_code=303)
     return templates.TemplateResponse('auth/login.html',
-                                       {"request": request, "error": "Incorrect username or password."})
+                                      {"request": request, "error": "Incorrect username or password."})
 
 
 @app.get("/internal", response_class=HTMLResponse)
@@ -114,27 +120,29 @@ async def generate_recommendation() -> List[str]:
     recommendations = [f"Recommendation {i}" for i in range(1, 11)]
     return recommendations
 
+
 class Nice(BaseModel):
     index: int
 
+
 class Search(BaseModel):
     search: str
+
 
 @app.post("/nice_anime")
 async def post_nice(nice: Nice):
     print(f"Nice button clicked on anime {nice.index}")
     return {}
 
+
 texts = [f"Text {i}" for i in range(10)]
+
+
 @app.get("/search_page", response_class=HTMLResponse)
 async def get_page(request: Request):
     return templates.TemplateResponse("internal/search.html", {"request": request})
 
+
 @app.post("/search")
-async def search(request_data: Search) -> List[str]:
-    search_term = request_data.search
-    result = []
-    for text in texts:
-        if search_term.lower() in text.lower():
-            result.append(text)
-    return result
+async def search(request_data: Search) -> List[schemas.Anime]:
+    return get_anime_by_name(request_data.search)

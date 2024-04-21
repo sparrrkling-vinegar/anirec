@@ -1,12 +1,13 @@
 from myanimelistpy.myanimelist import MyAnimeList
-import schemas
 import requests
 import os
+
+from svc import schemas
 
 CLIENT_ID = os.environ["CLIENT_ID"]
 
 
-def get_anime_by_name(name: str, limit: int, offset: int) -> list[schemas.Anime]:
+def get_anime_by_name(name: str, limit: int = 10, offset: int = 0) -> list[schemas.Anime]:
     my_anime_list = MyAnimeList(client_id=CLIENT_ID)
 
     anime_list = my_anime_list.getAnimeList(

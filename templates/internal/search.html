@@ -40,7 +40,7 @@
       output.innerHTML = data.length ?
         data.map((item, index) =>
           `<div class="d-flex justify-content-between align-items-center">
-            <p>${item}</p>
+            <p>${item['title']}</p>
             <button onclick="postNice(${index})" class="btn btn-success btn-sm">Nice</button>
           </div>`
         ).join('')
