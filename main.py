@@ -2,15 +2,16 @@ from fastapi import FastAPI, Request, Form
 from fastapi import UploadFile, File
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-import aiofiles
 from typing import List
 import re
 from fastapi.staticfiles import StaticFiles
-import auth.schemas as schemas
+import auth.schemas as auth_schemas
 from pydantic import BaseModel
 
-from svc.anime import get_anime_by_name
+from services.user_service import UserServiceFactory, UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword
+from svc.anime import get_anime_by_name, get_random_anime
 from svc import schemas as svc_schemas
+import schemas
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -23,18 +24,6 @@ def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-def check_password(password: str):
-    # Password should at least be 8 characters long, have a number, an uppercase and a lowercase letter,
-    # and a special character
-    # TODO: for debugging only!
-    return True
-    return (len(password) >= 8
-            and re.search(r'\d', password) is not None
-            and re.search(r'[A-Z]', password) is not None
-            and re.search(r'[a-z]', password) is not None
-            and re.search(r'\W', password) is not None)
-
-
 @app.get("/signup", response_class=HTMLResponse)
 async def signup_form(request: Request):
     return templates.TemplateResponse("auth/signup.html", {"request": request})
@@ -42,25 +31,34 @@ async def signup_form(request: Request):
 
 @app.post("/signup")
 async def signup(request: Request, username: str = Form(...), password: str = Form(...)):
-    # TODO: use this User
-    user = schemas.User(username=username, password=password)
-    _ = user
+    user_service = UserServiceFactory.make()
 
-    async with aiofiles.open('users.txt', mode='r') as file:
-        users = [line.split(":")[0] for line in await file.readlines()]
-    if username in users:
-        return templates.TemplateResponse('auth/signup.html', {"request": request, "error": "Username already exists."})
-    elif not check_password(password):
-        return templates.TemplateResponse('auth/signup.html', {"request": request, "error": "Weak password. Password "
-                                                                                            "should be at least 8 "
-                                                                                            "characters, "
-                                                                                            "include uppercase, "
-                                                                                            "lowercase, numbers, "
-                                                                                            "and a special character."})
-    else:
-        async with aiofiles.open('users.txt', mode='a') as file:
-            await file.write(f'{username}:{password}\n')
-        return RedirectResponse(url='/internal', status_code=303)
+    def failure_response_factory(text) -> templates.TemplateResponse:
+        return templates.TemplateResponse(
+            'auth/signup.html',
+            {"request": request, "error": text}
+        )
+
+    try:
+        user_service.register(
+            schemas.CreateUser(
+                username=username,
+                password=password,
+                icon=None  # TODO: add icon
+            )
+        )
+    except UserAlreadyExists:
+        return failure_response_factory(f"Username already exists.")
+    except WeakPassword:
+        return failure_response_factory(
+            "Weak password. Password "
+            "should be at least 8 "
+            "characters, "
+            "include uppercase, "
+            "lowercase, numbers, "
+            "and a special character."
+        )
+    return RedirectResponse(url='/internal', status_code=303)
 
 
 @app.get("/signin", response_class=HTMLResponse)
@@ -70,17 +68,21 @@ async def login_form(request: Request):
 
 @app.post("/signin")
 async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    # TODO: use this User
-    user = schemas.User(username=username, password=password)
-    _ = user
+    user_service = UserServiceFactory.make()
 
-    async with aiofiles.open('users.txt', mode='r') as file:
-        users = [line.strip().split(":") for line in await file.readlines()]
-        for user in users:
-            if user[0] == username and user[1] == password:
-                return RedirectResponse(url='/internal', status_code=303)
-    return templates.TemplateResponse('auth/login.html',
-                                      {"request": request, "error": "Incorrect username or password."})
+    def failure_response_factory(text):
+        return templates.TemplateResponse(
+            'auth/login.html',
+            {"request": request, "error": text}
+        )
+
+    try:
+        user_service.login(username=username, password=password)
+    except UserDoesNotExist:
+        return failure_response_factory("User does not exist.")
+    except WrongPassword:
+        return failure_response_factory("Incorrect password.")
+    return RedirectResponse(url='/internal', status_code=303)
 
 
 @app.get("/internal", response_class=HTMLResponse)
@@ -93,19 +95,39 @@ async def logout():
     return RedirectResponse(url='/', status_code=303)
 
 
-def get_user_data():
-    return "rmol", "/user_photos/rmol.png"
+# TODO: switch to token, do not use path
+@app.get("/account/{username}", response_class=HTMLResponse)
+async def account(request: Request, username: str):
+    user_service = UserServiceFactory.make()
 
+    try:
+        user = user_service.get(username=username)
+    except UserDoesNotExist:
+        return "User does not exist."
 
-@app.get("/account", response_class=HTMLResponse)
-async def account(request: Request):
-    username, user_photo_path = get_user_data()
     return templates.TemplateResponse(
-        "internal/account.html", {"request": request, "username": username, "photo": user_photo_path or None})
+        # for debugging user.icon should be '/user_photos/rmol.png'
+        "internal/account.html", {"request": request, "username": user.username, "photo": user.icon or None})
 
 
-@app.post("/update_account")
-async def update_account(username: str = Form(...), photo: UploadFile = File(...)):
+# TODO: switch to token, do not use path
+@app.post("/update_account/{user}")
+async def update_account(user: str, username: str = Form(...), photo: UploadFile = File(...)):
+    user_service = UserServiceFactory.make()
+
+    try:
+        user_service.update(
+            user,
+            schemas.EditUser(
+                username=username,
+                icon=None,
+                password=None  # TODO: implement front for password change
+            )
+        )
+    except WeakPassword:
+        return "Weak password"  # TODO: add template rendering or redirect
+    except UserDoesNotExist:
+        return "User does not"  # TODO: add template rendering or redirect
     return {
         "status": True,
         "detail": "User account has been updated"
@@ -118,9 +140,8 @@ async def get_page(request: Request):
 
 
 @app.post("/generate_recommendation")
-async def generate_recommendation() -> List[str]:
-    recommendations = [f"Recommendation {i}" for i in range(1, 11)]
-    return recommendations
+async def generate_recommendation() -> List[svc_schemas.Anime]:
+    return get_random_anime(limit=10)
 
 
 class Nice(BaseModel):

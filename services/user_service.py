@@ -1,97 +1,77 @@
-from database.database import get_db
-from database.models import User, Anime
+from repositories.user_repository import UserRepository
 import schemas
-from typing import List
-from utils import convert_user
+
+
+class UserAlreadyExists(Exception):
+    pass
+
+
+class UserDoesNotExist(Exception):
+    pass
+
+
+class WrongPassword(Exception):
+    pass
+
+
+class WeakPassword(Exception):
+    pass
+
+
+def check_password(password: str):
+    # Password should at least be 8 characters long, have a number, an uppercase and a lowercase letter,
+    # and a special character
+    # TODO: for debugging only!
+    return True
+    return all(
+        len(password) >= 8,
+        re.search(r'\d', password) is not None,
+        re.search(r'[A-Z]', password) is not None,
+        re.search(r'[a-z]', password) is not None,
+        re.search(r'\W', password) is not None
+    )
 
 
 class UserService:
-    db = get_db()
 
-    def create(self, user: schemas.CreateUser):
-        if self.db.query(User).filter(User.username == user.username).first() is not None:
-            return
-        db_user = User(
-            username=user.username,
-            password=user.password + "/SALT",  # TODO: use hash instead
-            icon=user.icon
-        )
-        self.db.add(db_user)
-        self.db.commit()
+    def __init__(self, user_repository: UserRepository):
+        self.__user_repository = user_repository
 
-    def get(self, username: str) -> schemas.User | None:
-        db_user = self.db.query(User).filter(User.username == username).first()
-        if db_user is None:
-            return None
+    def register(self, user: schemas.CreateUser):
+        if self.__user_repository.get(user.username) is not None:
+            raise UserAlreadyExists
+        if not check_password(user.password):
+            raise WeakPassword
+        self.__user_repository.create(user)
 
-        return convert_user(db_user)
+    def login(self, username: str, password: str) -> schemas.User:
+        user = self.__user_repository.get(username)
+        if user is None:
+            raise UserDoesNotExist
+        if user.password != password:
+            raise WrongPassword
+        return user
 
-    def delete(self, username: str):
-        db_user = self.db.query(User).filter(User.username == username).first()
-        if db_user is None:
-            return
-        self.db.delete(db_user)
-        self.db.commit()
+    def get(self, username: str) -> schemas.User:
+        user = self.__user_repository.get(username)
+        # TODO: perform image decoding
+        if user is None:
+            raise UserDoesNotExist
+        return user
 
-    def edit(self, user_info: schemas.EditUser):
-        db_user = self.db.query(User).filter(User.username == user_info.username).first()
-        if db_user is None:
-            return
-        if user_info.password is not None:
-            db_user.password = f"{user_info.password}/SALT"  # TODO: use hash instead
-        if user_info.icon is not None:
-            db_user.icon = user_info.icon
-        self.db.commit()
+    def update(self, username: str, user_info: schemas.EditUser) -> schemas.User:
+        user = self.__user_repository.get(username)
+        if user is None:
+            raise UserDoesNotExist
+        if user_info.password is not None and check_password(user_info.password):
+            raise WeakPassword
+        self.__user_repository.edit(username, user_info)
 
-    def add_anime(self, username: str, mal_id: str):
-        db_user = self.db.query(User).filter(User.username == username).first()
-        if db_user is None or mal_id in map(lambda x: x.mal_id, db_user.anime):
-            return
-        db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
-        if db_anime is None:
-            return
-        db_user.anime.append(db_anime)
-        self.db.commit()
-
-    def delete_anime(self, username: str, mal_id: str):
-        db_user = self.db.query(User).filter(User.username == username).first()
-        if db_user is None or mal_id not in map(lambda x: x.mal_id, db_user.anime):
-            return
-        db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
-        if db_anime is None:
-            return
-        db_user.anime.remove(db_anime)
-        self.db.commit()
-
-    def list(self, skip: int = 0, limit: int = 100) -> List[schemas.User]:
-        return list(
-            map(
-                convert_user,
-                self.db.query(User).offset(skip).limit(limit).all()
-            )
-        )
+        return self.__user_repository.get(username if user_info.username is None else user_info.username)
 
 
-if __name__ == "__main__":
-    us = UserService()
-    us.create(
-        schemas.CreateUser(
-            username="Anton",
-            icon="None",
-            password="<PASSWORD>"
-        )
-    )
-    # us.delete(username="Anton")
-    # us.edit(
-    #     schemas.EditUser(
-    #         username="Anton",
-    #         icon="SOME",
-    #         password="YA ANTON"
-    #     ))
-    # us.add_anime(username="Anton", mal_id="1")
-    # us.delete_anime(username="Anton", mal_id="1")
-    print(us.get(
-        username="Anton"
-    ))
-    print(us.list())
-
+class UserServiceFactory:
+    @staticmethod
+    def make() -> UserService:
+        user_repository = UserRepository()
+        return UserService(user_repository)
