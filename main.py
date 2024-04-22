@@ -33,10 +33,11 @@ async def signup_form(request: Request):
 async def signup(request: Request, username: str = Form(...), password: str = Form(...)):
     user_service = UserServiceFactory.make()
 
-    def failure_response_factory(text) -> templates.TemplateResponse:
+    def failure_response_factory(text: str, status_code: int) -> templates.TemplateResponse:
         return templates.TemplateResponse(
             'auth/signup.html',
-            {"request": request, "error": text}
+            {"request": request, "error": text},
+            status_code=status_code
         )
 
     try:
@@ -48,7 +49,7 @@ async def signup(request: Request, username: str = Form(...), password: str = Fo
             )
         )
     except UserAlreadyExists:
-        return failure_response_factory(f"Username already exists.")
+        return failure_response_factory(f"Username already exists.", 400)
     except WeakPassword:
         return failure_response_factory(
             "Weak password. Password "
@@ -56,7 +57,8 @@ async def signup(request: Request, username: str = Form(...), password: str = Fo
             "characters, "
             "include uppercase, "
             "lowercase, numbers, "
-            "and a special character."
+            "and a special character.",
+            400
         )
     return RedirectResponse(url='/internal', status_code=303)
 
@@ -70,18 +72,19 @@ async def login_form(request: Request):
 async def login(request: Request, username: str = Form(...), password: str = Form(...)):
     user_service = UserServiceFactory.make()
 
-    def failure_response_factory(text):
+    def failure_response_factory(text: str, status_code: int):
         return templates.TemplateResponse(
             'auth/login.html',
-            {"request": request, "error": text}
+            {"request": request, "error": text},
+            status_code=status_code
         )
 
     try:
         user_service.login(username=username, password=password)
     except UserDoesNotExist:
-        return failure_response_factory("User does not exist.")
+        return failure_response_factory("User does not exist.", 404)
     except WrongPassword:
-        return failure_response_factory("Incorrect password.")
+        return failure_response_factory("Incorrect password.", 403)
     return RedirectResponse(url='/internal', status_code=303)
 
 
