@@ -15,10 +15,6 @@ class AnimeBase(BaseModel):
     duration: int
 
 
-class CreateAnime(AnimeBase):
-    pass
-
-
 class GetAnime(BaseModel):
     mal_id: int
 

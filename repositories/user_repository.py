@@ -1,13 +1,12 @@
-from database.database import get_db
 from database.models import User, Anime
 import schemas
 from typing import List
-
 from repositories.utils import convert_user
 
 
 class UserRepository:
-    db = get_db()
+    def __init__(self, db):
+        self.db = db
 
     def create(self, user: schemas.CreateUser):
         if self.db.query(User).filter(User.username == user.username).first() is not None:
