@@ -1,22 +1,19 @@
+from auth.security import AuthHandler
 from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi import UploadFile, File, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from typing import List
-import re
-from fastapi.staticfiles import StaticFiles
-import auth.schemas as auth_schemas
-from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 from services.user_service import UserServiceFactory, UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword
-from svc.anime import get_anime_by_name, get_random_anime
 from svc import schemas as svc_schemas
-import schemas
-from auth.security import AuthHandler, Token
-import jwt
+from svc.anime import get_anime_by_name, get_random_anime
 from typing import Annotated
-import datetime
+from typing import List
+import jwt
+import schemas
+
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -25,7 +22,6 @@ templates = Jinja2Templates(directory="templates/")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="signin")
 
-ACCESS_TOKEN_EXPIRE_MINUTES = datetime.timedelta(60)
 secret_key = b"111111111111111111111111"
 auth_handler = AuthHandler(secret_key)
 
@@ -81,28 +77,29 @@ async def signup(request: Request, username: str = Form(...), password: str = Fo
 async def login_form(request: Request):
     return templates.TemplateResponse("auth/login.html", {"request": request})
 
+
 # Use this funcion to exchange your token to your username
-def get_current_user(self, token: Annotated[str, Depends(oauth2_scheme)]):
+def get_current_user(token: str):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, self.SECRET_KEY, algorithm=self.ALGORITHM)
+        payload = auth_handler.decode_access_token(token)
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
     except jwt.PyJWTError:
         raise credentials_exception
     
-    user = self.user_svc.get(username)
+    user_service = UserServiceFactory.make()
+    user = user_service.get(username)
     
     if user is None:
         raise credentials_exception
 
     return user
-
 
 # Use this function when you want to get new token and you are already registerd
 @app.post("/signin")
@@ -131,13 +128,19 @@ async def logout():
     return RedirectResponse(url='/', status_code=303)
 
 
-# TODO: switch to token, do not use path
-@app.get("/account/{username}", response_class=HTMLResponse)
-async def account(request: Request, username: str):
+@app.get("/account", response_class=HTMLResponse)
+async def account(request: Request):
     user_service = UserServiceFactory.make()
 
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        return HTMLResponse()
+
+    user = get_current_user(token)
+
     try:
-        user = user_service.get(username=username)
+        user = user_service.get(username=user.username)
     except UserDoesNotExist:
         return "User does not exist."
 
@@ -146,14 +149,20 @@ async def account(request: Request, username: str):
         "internal/account.html", {"request": request, "username": user.username, "photo": user.icon or None})
 
 
-# TODO: switch to token, do not use path
-@app.post("/update_account/{user}")
-async def update_account(user: str, username: str = Form(...), photo: UploadFile = File(...)):
+@app.post("/update_account")
+async def update_account(request: Request, username: str = Form(...), photo: UploadFile = File(...)):
     user_service = UserServiceFactory.make()
+
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        return HTMLResponse()
+
+    user = get_current_user(token)
 
     try:
         user_service.update(
-            user,
+            user.username,
             schemas.EditUser(
                 username=username,
                 icon=None,
@@ -172,6 +181,14 @@ async def update_account(user: str, username: str = Form(...), photo: UploadFile
 
 @app.get("/recommendation", response_class=HTMLResponse)
 async def get_recommendation(request: Request):
+    user_service = UserServiceFactory.make()
+
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        return HTMLResponse()
+
+    user = get_current_user(token)
     return templates.TemplateResponse("internal/recommendation.html", {"request": request})
 
 

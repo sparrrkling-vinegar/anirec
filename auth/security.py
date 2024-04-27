@@ -1,13 +1,13 @@
 import datetime
-import fastapi
 import fastapi.security as fastapi_security
 import jwt
-import os
+from jwt import algorithms
+from jwt.algorithms import Algorithm
 import passlib.context as passlib_context
 import pydantic
-import repositories.user_repository as user_repository
 import services.user_service as user_service
-import typing
+
+algorithms.HMACAlgorithm.SHA512
 
 class RequiresLoginException(Exception):
     pass
@@ -19,7 +19,7 @@ class Token(pydantic.BaseModel):
 class AuthHandler():
     security = fastapi_security.HTTPBearer()
     pwd_context = passlib_context.CryptContext(schemes=["bcrypt"], deprecated="auto")
-    ACCESS_TOKEN_EXPIRE_MINUTES = datetime.timedelta(60)
+    ACCESS_TOKEN_EXPIRE_MINUTES = datetime.timedelta(60000)
     DEFAULT_TIMEZONE = datetime.UTC
     ALGORITHM = "HS256"
     oauth2_scheme = fastapi_security.OAuth2PasswordBearer(tokenUrl="token")
@@ -27,11 +27,8 @@ class AuthHandler():
 
     def __init__(self, secret_key: bytes) -> None:
         # 16 bytes is enough for secure signing
-        user_repo = user_repository.UserRepository()
-        self.user_svc = user_service.UserService(user_repo)
         self.SECRET_KEY = secret_key
     
-    # For internal (this package) usage only
     # Used to create jwts
     def create_access_token(self,
         username: str, 
@@ -46,3 +43,7 @@ class AuthHandler():
         encoded_jwt = jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
         return encoded_jwt
 
+    
+    def decode_access_token(self, token: str):
+        payload = jwt.decode(token, self.SECRET_KEY, algorithms=[self.ALGORITHM])
+        return payload

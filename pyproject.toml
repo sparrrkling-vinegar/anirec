@@ -21,6 +21,7 @@ python-jose = "^3.3.0"
 sqlalchemy = "^2.0.29"
 db = "^0.1.1"
 myanimelistpy = "^0.1.4"
+pyjwt = "^2.8.0"
 
 
 [build-system]
