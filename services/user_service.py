@@ -64,7 +64,7 @@ class UserService:
         user = self.__user_repository.get(username)
         if user is None:
             raise UserDoesNotExist()
-        if user_info.password is not None and check_password(user_info.password):
+        if user_info.password is not None and not check_password(user_info.password):
             raise WeakPassword()
         self.__user_repository.edit(username, user_info)
 

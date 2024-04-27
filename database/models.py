@@ -17,7 +17,7 @@ class User(Base):
 class Anime(Base):
     __tablename__ = 'Anime'
 
-    mal_id = Column(String, primary_key=True)
+    mal_id = Column(Integer, primary_key=True)
     title = Column(String)
     main_picture = Column(String)
     popularity = Column(Integer)
