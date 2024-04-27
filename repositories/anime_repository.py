@@ -1,14 +1,16 @@
-from database.database import get_db
+from database import get_db
 from database.models import Anime, User
 import schemas
-from typing import List, Any
-from utils import convert_anime
+from repositories.utils import convert_anime, convert_user
+from typing import Optional, List
 
 
 class AnimeRepository:
-    db = get_db()
 
-    def create(self, anime: schemas.CreateAnime):
+    def __init__(self, db):
+        self.db = db
+
+    def create(self, anime: schemas.Anime):
         if self.db.query(Anime).filter(Anime.mal_id == anime.mal_id).first() is not None:
             return
         db_anime: Anime = Anime(
@@ -25,13 +27,13 @@ class AnimeRepository:
         self.db.add(db_anime)
         self.db.commit()
 
-    def get(self, mal_id: str):
+    def get(self, mal_id: int) -> Optional[Anime]:
         db_anime: Anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
         if db_anime is None:
-            return
+            return None
         return convert_anime(db_anime)
 
-    def delete(self, mal_id: str):
+    def delete(self, mal_id: int):
         db_anime: Anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
         if db_anime is None:
             return
@@ -60,7 +62,7 @@ class AnimeRepository:
             db_anime.duration = anime_info.duration
         self.db.commit()
 
-    def add_user(self, username: str, mal_id: str):
+    def add_user(self, username: str, mal_id: int):
         db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
         if db_anime is None or username in map(lambda x: x.username, db_anime.users):
             return
@@ -70,7 +72,7 @@ class AnimeRepository:
         db_anime.users.append(db_user)
         self.db.commit()
 
-    def delete_user(self, username: str, mal_id: str):
+    def delete_user(self, username: str, mal_id: int):
         db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
         if db_anime is None or username not in map(lambda x: x.username, db_anime.users):
             return
@@ -88,12 +90,23 @@ class AnimeRepository:
             )
         )
 
+    def users(self, mal_id) -> Optional[List[schemas.User]]:
+        db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
+        if db_anime is None:
+            return None
+        return list(
+            map(
+                convert_user,
+                db_anime.users
+            )
+        )
+
 
 if __name__ == "__main__":
-    anime_service = AnimeRepository()
+    anime_service = AnimeRepository(get_db())
     anime_service.create(
-        schemas.CreateAnime(
-            mal_id=1,
+        schemas.Anime(
+            mal_id="1",
             title="Death Note",
             main_picture="None",
             popularity=100,

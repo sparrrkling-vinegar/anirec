@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Table
+from sqlalchemy import Column, ForeignKey, Integer, String, JSON
 from sqlalchemy.orm import relationship
 
 from database.database import Base
@@ -11,8 +11,8 @@ class User(Base):
     password = Column(String)
     icon = Column(String)
 
-    # anime = relationship("Anime", back_populates="user")
     anime = relationship('Anime', secondary='UserAnime', back_populates='users')
+
 
 class Anime(Base):
     __tablename__ = 'Anime'
@@ -27,8 +27,6 @@ class Anime(Base):
     episodes = Column(Integer)
     duration = Column(Integer)
 
-    # username = Column(String, ForeignKey('User.username'))
-    # user = relationship("User", back_populates="anime")
     users = relationship('User', secondary='UserAnime', back_populates='anime')
 
 

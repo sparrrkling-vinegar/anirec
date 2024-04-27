@@ -1,4 +1,5 @@
 from repositories.user_repository import UserRepository
+from database import get_db
 import schemas
 
 
@@ -73,5 +74,5 @@ class UserService:
 class UserServiceFactory:
     @staticmethod
     def make() -> UserService:
-        user_repository = UserRepository()
+        user_repository = UserRepository(get_db())
         return UserService(user_repository)
