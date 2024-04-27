@@ -40,32 +40,32 @@ class UserService:
 
     def register(self, user: schemas.CreateUser):
         if self.__user_repository.get(user.username) is not None:
-            raise UserAlreadyExists
+            raise UserAlreadyExists()
         if not check_password(user.password):
-            raise WeakPassword
+            raise WeakPassword()
         self.__user_repository.create(user)
 
     def login(self, username: str, password: str) -> schemas.User:
         user = self.__user_repository.get(username)
         if user is None:
-            raise UserDoesNotExist
+            raise UserDoesNotExist()
         if user.password != password:
-            raise WrongPassword
+            raise WrongPassword()
         return user
 
     def get(self, username: str) -> schemas.User:
         user = self.__user_repository.get(username)
         # TODO: perform image decoding
         if user is None:
-            raise UserDoesNotExist
+            raise UserDoesNotExist()
         return user
 
     def update(self, username: str, user_info: schemas.EditUser) -> schemas.User:
         user = self.__user_repository.get(username)
         if user is None:
-            raise UserDoesNotExist
+            raise UserDoesNotExist()
         if user_info.password is not None and check_password(user_info.password):
-            raise WeakPassword
+            raise WeakPassword()
         self.__user_repository.edit(username, user_info)
 
         return self.__user_repository.get(username if user_info.username is None else user_info.username)
