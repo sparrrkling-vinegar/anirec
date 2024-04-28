@@ -83,7 +83,6 @@ class BaseAnimeService(AnimeService):
             try:
                 duration = int(data["duration"].split()[0])  # !!"24 min per ep"!!
             except ValueError as e:
-                print(e)
                 duration = -1
 
             genres = [genre["name"] for genre in data["genres"]]

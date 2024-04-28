@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
+import fastapi
 import schemas
 from auth.security import AuthHandler
 from services.anime_service import AnimeServiceFactory, AnimeAlreadyExists
@@ -15,6 +16,7 @@ from services.enroll_service import EnrollServiceFactory
 from services.user_service import UserServiceFactory, UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword
 from svc import schemas as svc_schemas
 from svc.myanimelist_service import AnimeServiceFactory as AnimeApiServiceFactory
+import typing
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -134,8 +136,9 @@ async def internal(request: Request):
 
 @app.get("/logout")
 async def logout():
-    return RedirectResponse(url='/', status_code=303)
-
+    resp = RedirectResponse(url='/', status_code=303)
+    resp.delete_cookie("access_token")
+    return resp
 
 @app.get("/account", response_class=HTMLResponse)
 async def account(request: Request):
@@ -163,16 +166,30 @@ async def account(request: Request):
         })
 
 
-@app.post("/update_account")
-async def update_account(request: Request, password: str = Form(...), photo: UploadFile = File(...)):
+@app.post("/update_account", response_class=HTMLResponse)
+async def update_account(request: Request, password: str = Form(...), photo: typing.Optional[UploadFile] = File(...)):
     user_service = UserServiceFactory.make()
-
     token = request.cookies.get("access_token")
 
     if token is None:
         return HTMLResponse()
+    if photo is None:
+        return "photo is none"
 
     user = get_current_user(token)
+    
+    def error_response_factory(error: str) -> HTMLResponse:
+        resp = templates.TemplateResponse(
+            # for debugging user.icon should be '/user_photos/rmol.png'
+            "internal/account.html", {
+                "request": request,
+                "username": user.username,
+                "photo": user.icon or None,
+                "anime": user.anime,
+                "error": error
+            })
+        
+        return resp
 
     try:
         user_service.update(
@@ -182,14 +199,18 @@ async def update_account(request: Request, password: str = Form(...), photo: Upl
                 password=password
             )
         )
+
+
     except WeakPassword:
-        return "Weak password"  # TODO: add template rendering or redirect
+        return error_response_factory("Weak password")  # return "Weak password"  # TODO: add template rendering or redirect
     except UserDoesNotExist:
-        return "User does not"  # TODO: add template rendering or redirect
-    return RedirectResponse(
-        url="/account",
-        status_code=303
-    )
+        return error_response_factory("User does not exist")  # return "Weak password"  # TODO: add template rendering or redirect
+
+    token = auth_handler.create_access_token(user.username)
+    # return RedirectResponse(
+    #     url="/account",
+    #     status_code=303
+    # )
 
 
 @app.get("/recommendation", response_class=HTMLResponse)
@@ -255,7 +276,7 @@ async def add_anime(request: Request, add: AddAnime):
 
 
 @app.delete("/delete_anime")
-async def add_anime(request: Request, delete: DeleteAnime):
+async def delete_anime(request: Request, delete: DeleteAnime):
     token = request.cookies.get("access_token")
 
     if token is None:

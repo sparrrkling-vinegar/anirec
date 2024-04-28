@@ -23,7 +23,7 @@ def check_password(password: str):
     # Password should at least be 8 characters long, have a number, an uppercase and a lowercase letter,
     # and a special character
     # TODO: for debugging only!
-    return True
+    return False
     return all(
         len(password) >= 8,
         re.search(r'\d', password) is not None,
@@ -65,8 +65,10 @@ class UserService:
         if user is None:
             raise UserDoesNotExist()
         if user_info.password is not None and not check_password(user_info.password):
+            print(user_info.password, check_password(user_info.password))
             raise WeakPassword()
         self.__user_repository.edit(username, user_info)
+        print("ZALUPA")
 
         return self.__user_repository.get(username if user_info.username is None else user_info.username)
 
