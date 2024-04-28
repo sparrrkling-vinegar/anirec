@@ -45,7 +45,7 @@ class UserRepository:
             db_user.icon = user_info.icon
         self.db.commit()
 
-    def add_anime(self, username: str, mal_id: str):
+    def add_anime(self, username: str, mal_id: int):
         db_user = self.db.query(User).filter(User.username == username).first()
         if db_user is None or mal_id in map(lambda x: x.mal_id, db_user.anime):
             return
@@ -55,7 +55,7 @@ class UserRepository:
         db_user.anime.append(db_anime)
         self.db.commit()
 
-    def delete_anime(self, username: str, mal_id: str):
+    def delete_anime(self, username: str, mal_id: int):
         db_user = self.db.query(User).filter(User.username == username).first()
         if db_user is None or mal_id not in map(lambda x: x.mal_id, db_user.anime):
             return

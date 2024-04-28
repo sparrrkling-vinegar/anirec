@@ -7,13 +7,14 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from services.user_service import UserServiceFactory, UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword
+from services.anime_service import AnimeServiceFactory, AnimeAlreadyExists, AnimeDoesNotExist
+from services.enroll_service import EnrollServiceFactory
 from svc import schemas as svc_schemas
 from svc.anime import get_anime_by_name, get_random_anime
 from typing import Annotated
 from typing import List
 import jwt
 import schemas
-
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -24,6 +25,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="signin")
 
 secret_key = b"111111111111111111111111"
 auth_handler = AuthHandler(secret_key)
+
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
@@ -92,25 +94,32 @@ def get_current_user(token: str):
             raise credentials_exception
     except jwt.PyJWTError:
         raise credentials_exception
-    
+
     user_service = UserServiceFactory.make()
     user = user_service.get(username)
-    
+
     if user is None:
         raise credentials_exception
 
     return user
 
+
 # Use this function when you want to get new token and you are already registerd
 @app.post("/signin")
-def check_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+def check_token(request: Request, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    def failure_response_factory(text):
+        return templates.TemplateResponse(
+            'auth/login.html',
+            {"request": request, "error": text}
+        )
+
     user_service = UserServiceFactory.make()
     try:
-        print(form_data.username, form_data.password)
-
         user = user_service.login(form_data.username, form_data.password)
-    except UserDoesNotExist or WrongPassword:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    except UserDoesNotExist:
+        return failure_response_factory("User does not exist.")
+    except WrongPassword:
+        return failure_response_factory("Incorrect password.")
 
     token = auth_handler.create_access_token(user.username)
     resp = RedirectResponse(url='/internal', status_code=303)
@@ -146,11 +155,16 @@ async def account(request: Request):
 
     return templates.TemplateResponse(
         # for debugging user.icon should be '/user_photos/rmol.png'
-        "internal/account.html", {"request": request, "username": user.username, "photo": user.icon or None})
+        "internal/account.html", {
+            "request": request,
+            "username": user.username,
+            "photo": user.icon or None,
+            "anime": user.anime
+        })
 
 
 @app.post("/update_account")
-async def update_account(request: Request, username: str = Form(...), photo: UploadFile = File(...)):
+async def update_account(request: Request, password: str = Form(...), photo: UploadFile = File(...)):
     user_service = UserServiceFactory.make()
 
     token = request.cookies.get("access_token")
@@ -164,19 +178,18 @@ async def update_account(request: Request, username: str = Form(...), photo: Upl
         user_service.update(
             user.username,
             schemas.EditUser(
-                username=username,
                 icon=None,
-                password=None  # TODO: implement front for password change
+                password=password
             )
         )
     except WeakPassword:
         return "Weak password"  # TODO: add template rendering or redirect
     except UserDoesNotExist:
         return "User does not"  # TODO: add template rendering or redirect
-    return {
-        "status": True,
-        "detail": "User account has been updated"
-    }
+    return RedirectResponse(
+        url="/account",
+        status_code=303
+    )
 
 
 @app.get("/recommendation", response_class=HTMLResponse)
@@ -194,24 +207,65 @@ async def get_recommendation(request: Request):
 
 @app.post("/generate_recommendation")
 async def generate_recommendation() -> List[svc_schemas.Anime]:
-    return get_random_anime(limit=10)
+    anime = get_random_anime(limit=10)
+    anime_service = AnimeServiceFactory.make()
+    for anim in anime:
+        try:
+            anime_service.add(anim)
+        except AnimeAlreadyExists:
+            pass
+    return anime
 
 
-class Nice(BaseModel):
-    index: int
+class AddAnime(BaseModel):
+    mal_id: int
+
+
+class DeleteAnime(BaseModel):
+    mal_id: int
 
 
 class Search(BaseModel):
     search: str
 
 
-@app.post("/nice_anime")
-async def post_nice(nice: Nice):
-    print(f"Nice button clicked on anime {nice.index}")
-    return {}
+@app.get("/my_anime_list")
+async def my_anime_list(request: Request):
+    token = request.cookies.get("access_token")
+    if token is None:
+        return HTMLResponse()
+    user = get_current_user(token)
+    return user.anime
 
 
-texts = [f"Text {i}" for i in range(10)]
+@app.post("/add_anime")
+async def add_anime(request: Request, add: AddAnime):
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        return HTMLResponse()
+
+    user = get_current_user(token)
+    enrollment_service = EnrollServiceFactory.make()
+    enrollment_service.connect(user.username, add.mal_id)
+
+    print(f"Add button clicked on anime {add.mal_id}")
+    return {"details": f"{add.mal_id}"}
+
+
+@app.delete("/delete_anime")
+async def add_anime(request: Request, delete: DeleteAnime):
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        return HTMLResponse()
+
+    user = get_current_user(token)
+    enrollment_service = EnrollServiceFactory.make()
+    enrollment_service.disconnect(user.username, delete.mal_id)
+
+    print(f"Delete button clicked on anime {delete.mal_id}")
+    return {"details": f"{delete.mal_id}"}
 
 
 @app.get("/search_page", response_class=HTMLResponse)
@@ -221,6 +275,11 @@ async def get_search_page(request: Request):
 
 @app.post("/search")
 async def search(request_data: Search) -> List[svc_schemas.Anime]:
-    return get_anime_by_name(request_data.search)
-
-
+    anime = get_anime_by_name(request_data.search)
+    anime_service = AnimeServiceFactory.make()
+    for anim in anime:
+        try:
+            anime_service.add(anim)
+        except AnimeAlreadyExists:
+            pass
+    return anime

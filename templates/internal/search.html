@@ -41,7 +41,7 @@
         data.map((item, index) =>
           `<div class="d-flex justify-content-between align-items-center">
             <p>${item['title']}</p>
-            <button onclick="postNice(${index})" class="btn btn-success btn-sm">Nice</button>
+            <button onclick="postAddAnime(${item['mal_id']})" class="btn btn-success btn-sm">Nice</button>
           </div>`
         ).join('')
         : '<p>No results found.</p>';
@@ -51,13 +51,13 @@
     });
   });
 
-  function postNice(index) {
-    fetch('/nice_anime', {
+  function postAddAnime(mal_id) {
+    fetch('/add_anime', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({index: index})
+      body: JSON.stringify({mal_id: mal_id})
     }).then(response => console.log(response))
     .catch(err => console.error(err));
   }
