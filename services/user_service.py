@@ -1,6 +1,7 @@
 from repositories.user_repository import UserRepository
 from database import get_db
 import schemas
+from typing import List
 
 
 class UserAlreadyExists(Exception):
@@ -69,6 +70,9 @@ class UserService:
         self.__user_repository.edit(username, user_info)
 
         return self.__user_repository.get(username if user_info.username is None else user_info.username)
+
+    def list(self, limit=1000) -> List[schemas.User]:
+        return self.__user_repository.list(limit=limit)
 
 
 class UserServiceFactory:
