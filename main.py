@@ -20,7 +20,7 @@ from services.enroll_service import EnrollService
 from services.user_service import UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword, UserService
 from svc import schemas as svc_schemas
 
-from svc.myanimelist_service import AnimeServiceFactory as AnimeApiServiceFactory
+from svc.myanimelist_service import AnimeApiService, BaseAnimeApiService
 import typing
 
 app = FastAPI()
