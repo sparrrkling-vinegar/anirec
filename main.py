@@ -321,6 +321,11 @@ async def get_search_page(request: Request):
     return templates.TemplateResponse("internal/search.html", {"request": request})
 
 
+@app.get("/my_anime_list_page", response_class=HTMLResponse)
+async def get_search_page(request: Request):
+    return templates.TemplateResponse("internal/my_anime_list.html", {"request": request})
+
+
 @app.post("/search")
 async def search(request_data: Search) -> List[svc_schemas.Anime]:
     anime = anime_list.get_anime_by_name(request_data.search)

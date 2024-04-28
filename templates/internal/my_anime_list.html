@@ -1,0 +1,60 @@
+{% extends "base_internal.html" %}
+
+{% block title %}
+    <title>My Anime Lit</title>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-5 text-center">
+        <h2>My Anime List</h2>
+
+        <div id="myAnimeList" class="mt-4">
+            <!-- Placeholder for anime list -->
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+            fetch('/my_anime_list', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const myAnimeList = document.getElementById('myAnimeList');
+                    myAnimeList.innerHTML = data.length ?
+                        data.map((item, index) =>
+                            `<div class="d-flex justify-content-between align-items-center">
+            <p>${item['title']}</p>
+            <button onclick="deleteAnime(${item['mal_id']})" class="btn btn-danger btn-sm">Delete</button>
+          </div>`
+                        ).join('')
+                        : '<p>No animes found.</p>';
+                })
+                .catch(() => {
+                    myAnimeList.innerHTML = 'An error occurred while fetching the anime list!';
+                });
+        });
+
+        function deleteAnime(mal_id) {
+            fetch('/delete_anime', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({mal_id: mal_id})
+            }).then(
+                response => {
+                    console.log(response);
+                    window.location.reload();
+                }
+            )
+                .catch(err => console.error(err));
+        }
+    </script>
+{% endblock %}
