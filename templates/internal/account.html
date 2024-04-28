@@ -12,8 +12,10 @@
         <h2>User Account Page</h2>
         <p>Username: {{ username }}</p>
         {% if photo %}
-            <div class="mt-3">
-                <img src="{{ photo }}" alt="User photo" class="img-thumbnail">
+            <div class="parent">
+                <div class="mt-3">
+                    <img id="profile-pic" src="" alt="user photo" class="img-thumbnail">
+                </div>
             </div>
         {% endif %}
 
@@ -33,11 +35,11 @@
         <form action="/update_account" method="post" enctype="multipart/form-data" class="mt-3">
             <div class="mb-3">
                 <label for="password" class="form-label">New Password:</label>
-                <input type="password" id="password" name="password" value="" class="form-control" required>
+                <input type="password" id="password" name="password" value="" class="form-control" optional>
             </div>
             <div class="mb-3">
                 <label for="photo" class="form-label">New Photo:</label>
-                <input type="file" id="photo" name="photo" class="form-control" oprional>
+                <input type="file" id="photo" name="photo" class="form-control" accept="image/*" optional>
             </div>
             <button type="submit" class="btn btn-primary">Update</button>
         </form>
@@ -47,6 +49,18 @@
       {% endif %}
 
     </div>
+
+    <style>
+        .parent {
+          width: 150px;
+        }
+
+        img {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+    </style>
 {% endblock %}
 
 {% block scripts %}
@@ -66,7 +80,9 @@
             )
                 .catch(err => console.error(err));
         }
-
-        function updateAccount() {}
+        
+        {% if photo %}
+            document.getElementById("profile-pic").src = "data:image/png;base64," + "{{ photo }}";
+        {% endif %}
     </script>
 {% endblock %}
