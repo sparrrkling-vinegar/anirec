@@ -1,11 +1,11 @@
 import unittest
 
-import schemas
+from repositories import schemas
 from database import get_db
 from repositories.anime_repository import AnimeRepository
 
 
-class AnimeRepositoryTests(unittest.TestCase):
+class TestAnimeRepository(unittest.TestCase):
     repository = AnimeRepository(get_db("sqlite:///:memory:"))
     test_anime = schemas.Anime(
         mal_id=1,

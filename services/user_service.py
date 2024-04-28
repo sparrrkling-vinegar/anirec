@@ -1,3 +1,6 @@
+import re
+
+from repositories import schemas
 import schemas
 from typing import List
 from repositories.user_repository import UserRepository
@@ -23,14 +26,14 @@ def check_password(password: str):
     # Password should at least be 8 characters long, have a number, an uppercase and a lowercase letter,
     # and a special character
     # TODO: for debugging only!
-    return True
-    return all(
+    # return True
+    return all([
         len(password) >= 8,
         re.search(r'\d', password) is not None,
         re.search(r'[A-Z]', password) is not None,
         re.search(r'[a-z]', password) is not None,
         re.search(r'\W', password) is not None
-    )
+    ])
 
 
 class UserService:

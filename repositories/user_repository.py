@@ -1,6 +1,6 @@
 from typing import List
 
-import schemas
+from repositories import schemas
 from database.models import User, Anime
 from repositories.utils import convert_user
 

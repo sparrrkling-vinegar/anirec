@@ -1,11 +1,11 @@
 import unittest
 
-import schemas
+from repositories import schemas
 from database import get_db
 from repositories.user_repository import UserRepository
 
 
-class UserRepositoryTests(unittest.TestCase):
+class TestUserRepository(unittest.TestCase):
     repository = UserRepository(get_db("sqlite:///:memory:"))
     create_user = schemas.CreateUser(
         username="Anton",

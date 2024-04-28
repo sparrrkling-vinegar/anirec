@@ -1,4 +1,4 @@
-import schemas
+from repositories import schemas
 from repositories.anime_repository import AnimeRepository
 
 
