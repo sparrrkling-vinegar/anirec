@@ -8,10 +8,7 @@ from svc import schemas
 CLIENT_ID = "08914cffcc9596a955b15a1e365ab9ff"
 
 
-# CLIENT_ID = os.environ["CLIENT_ID"]
-
-
-class AnimeService(ABC):
+class AnimeApiService(ABC):
     @abstractmethod
     def get_anime_by_name(self, name: str, limit: int = 10, offset: int = 0) -> list[schemas.Anime]:
         pass
@@ -21,7 +18,7 @@ class AnimeService(ABC):
         pass
 
 
-class BaseAnimeService(AnimeService):
+class BaseAnimeApiService(AnimeApiService):
     def __init__(self, client_id: str):
         self.client_id = client_id
 
@@ -107,11 +104,11 @@ class BaseAnimeService(AnimeService):
 class AnimeServiceFactory:
     @staticmethod
     def make():
-        return BaseAnimeService(client_id=CLIENT_ID)
+        return BaseAnimeApiService(client_id=CLIENT_ID)
 
 
 if __name__ == "__main__":
-    anime_service: AnimeService = BaseAnimeService(client_id=CLIENT_ID)
+    anime_service: AnimeApiService = BaseAnimeApiService(client_id=CLIENT_ID)
     an = anime_service.get_random_anime(2)
 
     for a in an:

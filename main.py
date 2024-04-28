@@ -11,10 +11,15 @@ from pydantic import BaseModel
 import fastapi
 import schemas
 from auth.security import AuthHandler
-from services.anime_service import AnimeServiceFactory, AnimeAlreadyExists
-from services.enroll_service import EnrollServiceFactory
-from services.user_service import UserServiceFactory, UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword
+from database import get_db
+from recommentations.recommendations_service import BaseRecommendationsService, RecommendationsService
+from repositories.anime_repository import AnimeRepository
+from repositories.user_repository import UserRepository
+from services.anime_service import AnimeAlreadyExists, AnimeService
+from services.enroll_service import EnrollService
+from services.user_service import UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword, UserService
 from svc import schemas as svc_schemas
+
 from svc.myanimelist_service import AnimeServiceFactory as AnimeApiServiceFactory
 import typing
 
@@ -27,6 +32,24 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="signin")
 
 secret_key = b"111111111111111111111111"
 auth_handler = AuthHandler(secret_key)
+
+CLIENT_ID = "08914cffcc9596a955b15a1e365ab9ff"
+# CLIENT_ID = os.environ["CLIENT_ID"]
+
+# DI
+db = get_db()
+user_repository = UserRepository(db)
+anime_repository = AnimeRepository(db)
+user_service = UserService(user_repository)
+anime_service = AnimeService(anime_repository)
+enrollment_service = EnrollService(user_repository, anime_repository)
+anime_list: AnimeApiService = BaseAnimeApiService(client_id=CLIENT_ID)
+recommendations_service: RecommendationsService = BaseRecommendationsService(
+    user_service=user_service,
+    enroll_service=enrollment_service,
+    anime_service=anime_service,
+    anime_api_service=anime_list
+)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -41,8 +64,6 @@ async def signup_form(request: Request):
 
 @app.post("/signup")
 async def signup(request: Request, username: str = Form(...), password: str = Form(...)):
-    user_service = UserServiceFactory.make()
-
     def failure_response_factory(text: str, status_code: int) -> templates.TemplateResponse:
         return templates.TemplateResponse(
             'auth/signup.html',
@@ -97,7 +118,6 @@ def get_current_user(token: str):
     except jwt.PyJWTError:
         raise credentials_exception
 
-    user_service = UserServiceFactory.make()
     user = user_service.get(username)
 
     if user is None:
@@ -115,7 +135,6 @@ def check_token(request: Request, form_data: Annotated[OAuth2PasswordRequestForm
             {"request": request, "error": text}
         )
 
-    user_service = UserServiceFactory.make()
     try:
         user = user_service.login(form_data.username, form_data.password)
     except UserDoesNotExist:
@@ -142,8 +161,6 @@ async def logout():
 
 @app.get("/account", response_class=HTMLResponse)
 async def account(request: Request):
-    user_service = UserServiceFactory.make()
-
     token = request.cookies.get("access_token")
 
     if token is None:
@@ -169,6 +186,7 @@ async def account(request: Request):
 @app.post("/update_account", response_class=HTMLResponse)
 async def update_account(request: Request, password: str = Form(...), photo: typing.Optional[UploadFile] = File(...)):
     user_service = UserServiceFactory.make()
+
     token = request.cookies.get("access_token")
 
     if token is None:
@@ -216,8 +234,6 @@ async def update_account(request: Request, password: str = Form(...), photo: typ
 
 @app.get("/recommendation", response_class=HTMLResponse)
 async def get_recommendation(request: Request):
-    user_service = UserServiceFactory.make()
-
     token = request.cookies.get("access_token")
 
     if token is None:
@@ -228,15 +244,14 @@ async def get_recommendation(request: Request):
 
 
 @app.post("/generate_recommendation")
-async def generate_recommendation() -> List[svc_schemas.Anime]:
-    anime_list = AnimeApiServiceFactory.make()
-    anime = anime_list.get_random_anime(limit=10)
-    anime_service = AnimeServiceFactory.make()
-    for anim in anime:
-        try:
-            anime_service.add(anim)
-        except AnimeAlreadyExists:
-            pass
+async def generate_recommendation(request: Request) -> List[schemas.Anime]:
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        return HTMLResponse()
+
+    user = get_current_user(token)
+    anime = recommendations_service.get_recommendations(user.anime)
     return anime
 
 
@@ -269,7 +284,6 @@ async def add_anime(request: Request, add: AddAnime):
         return HTMLResponse()
 
     user = get_current_user(token)
-    enrollment_service = EnrollServiceFactory.make()
     enrollment_service.connect(user.username, add.mal_id)
 
     print(f"Add button clicked on anime {add.mal_id}")
@@ -284,7 +298,6 @@ async def delete_anime(request: Request, delete: DeleteAnime):
         return HTMLResponse()
 
     user = get_current_user(token)
-    enrollment_service = EnrollServiceFactory.make()
     enrollment_service.disconnect(user.username, delete.mal_id)
 
     print(f"Delete button clicked on anime {delete.mal_id}")
@@ -298,9 +311,7 @@ async def get_search_page(request: Request):
 
 @app.post("/search")
 async def search(request_data: Search) -> List[svc_schemas.Anime]:
-    anime_list = AnimeApiServiceFactory.make()
     anime = anime_list.get_anime_by_name(request_data.search)
-    anime_service = AnimeServiceFactory.make()
     for anim in anime:
         try:
             anime_service.add(anim)
