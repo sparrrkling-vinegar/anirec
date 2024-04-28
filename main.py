@@ -1,20 +1,20 @@
-from auth.security import AuthHandler
-from fastapi import FastAPI, Request, Form, HTTPException
-from fastapi import UploadFile, File, Depends
+from typing import Annotated, List
+
+import jwt
+from fastapi import FastAPI, Request, Form, HTTPException, UploadFile, File, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from services.user_service import UserServiceFactory, UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword
-from services.anime_service import AnimeServiceFactory, AnimeAlreadyExists, AnimeDoesNotExist
-from services.enroll_service import EnrollServiceFactory
-from svc import schemas as svc_schemas
-from svc.anime import get_anime_by_name, get_random_anime
-from typing import Annotated
-from typing import List
-import jwt
+
 import schemas
+from auth.security import AuthHandler
+from services.anime_service import AnimeServiceFactory, AnimeAlreadyExists
+from services.enroll_service import EnrollServiceFactory
+from services.user_service import UserServiceFactory, UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword
+from svc import schemas as svc_schemas
+from svc.myanimelist_service import AnimeServiceFactory as AnimeApiServiceFactory
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -207,7 +207,8 @@ async def get_recommendation(request: Request):
 
 @app.post("/generate_recommendation")
 async def generate_recommendation() -> List[svc_schemas.Anime]:
-    anime = get_random_anime(limit=10)
+    anime_list = AnimeApiServiceFactory.make()
+    anime = anime_list.get_random_anime(limit=10)
     anime_service = AnimeServiceFactory.make()
     for anim in anime:
         try:
@@ -275,7 +276,8 @@ async def get_search_page(request: Request):
 
 @app.post("/search")
 async def search(request_data: Search) -> List[svc_schemas.Anime]:
-    anime = get_anime_by_name(request_data.search)
+    anime_list = AnimeApiServiceFactory.make()
+    anime = anime_list.get_anime_by_name(request_data.search)
     anime_service = AnimeServiceFactory.make()
     for anim in anime:
         try:
