@@ -229,6 +229,15 @@ class Search(BaseModel):
     search: str
 
 
+@app.get("/my_anime_list")
+async def my_anime_list(request: Request):
+    token = request.cookies.get("access_token")
+    if token is None:
+        return HTMLResponse()
+    user = get_current_user(token)
+    return user.anime
+
+
 @app.post("/add_anime")
 async def add_anime(request: Request, add: AddAnime):
     token = request.cookies.get("access_token")
