@@ -1,4 +1,5 @@
 import unittest
+
 import schemas
 from database import get_db
 from repositories.anime_repository import AnimeRepository

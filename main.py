@@ -1,4 +1,6 @@
-from typing import Annotated, List
+import os
+from typing import Annotated
+from typing import List
 
 import jwt
 from fastapi import FastAPI, Request, Form, HTTPException, UploadFile, File, Depends
@@ -36,8 +38,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="signin")
 secret_key = b"111111111111111111111111"
 auth_handler = AuthHandler(secret_key)
 
-CLIENT_ID = "08914cffcc9596a955b15a1e365ab9ff"
-# CLIENT_ID = os.environ["CLIENT_ID"]
+CLIENT_ID = os.environ["CLIENT_ID"]
 
 # DI
 db = get_db()
@@ -120,7 +121,7 @@ async def login_form(request: Request):
     return templates.TemplateResponse("auth/login.html", {"request": request})
 
 
-# Use this funcion to exchange your token to your username
+# Use this function to exchange your token to your username
 def get_current_user(token: str):
     credentials_exception = HTTPException(
         status_code=401,
@@ -143,7 +144,7 @@ def get_current_user(token: str):
     return user
 
 
-# Use this function when you want to get new token and you are already registerd
+# Use this function when you want to get new token and you are already registered
 @app.post("/signin")
 def check_token(request: Request, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     def failure_response_factory(text):
@@ -193,10 +194,10 @@ async def account(request: Request):
         user = user_service.get(username=user.username)
     except UserDoesNotExist:
         return "User does not exist."
-    
+
     fallback_photo = base64.b64encode(open("user_photos/rmol.png", "rb").read()).decode()
     user_photo_b64 = fallback_photo
-    
+
     if user.icon is not None and user.icon != "":
         user_photo_b64 = user.icon
 
@@ -233,11 +234,11 @@ async def update_account(request: Request, password: str = Form(None), photo: Up
             })
 
         return resp
-    
+
     data = None
     if photo is not None:
         data = await photo.read()
-        
+
 
     try:
         user_service.update(

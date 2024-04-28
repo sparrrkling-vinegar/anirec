@@ -1,5 +1,6 @@
 import pydantic
 
+
 class Anime(pydantic.BaseModel):
     title: str
     mal_id: int

@@ -1,8 +1,9 @@
+from typing import Optional, List
+
+import schemas
 from database import get_db
 from database.models import Anime, User
-import schemas
 from repositories.utils import convert_anime, convert_user
-from typing import Optional, List
 
 
 class AnimeRepository:

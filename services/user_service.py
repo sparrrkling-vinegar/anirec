@@ -1,7 +1,6 @@
-from repositories.user_repository import UserRepository
-from database import get_db
 import schemas
 from typing import List
+from repositories.user_repository import UserRepository
 
 
 class UserAlreadyExists(Exception):
@@ -73,10 +72,3 @@ class UserService:
 
     def list(self, limit=1000) -> List[schemas.User]:
         return self.__user_repository.list(limit=limit)
-
-
-class UserServiceFactory:
-    @staticmethod
-    def make() -> UserService:
-        user_repository = UserRepository(get_db())
-        return UserService(user_repository)
