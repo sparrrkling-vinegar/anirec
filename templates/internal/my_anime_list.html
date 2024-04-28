@@ -6,11 +6,30 @@
 
 {% block content %}
     <div class="container mt-5 text-center">
-        <h2>My Anime List</h2>
+        <h2 class="text-center">My Anime List</h2>
 
         <div id="myAnimeList" class="mt-4">
             <!-- Placeholder for anime list -->
         </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="animeDetailModal" tabindex="-1" aria-labelledby="animeDetailModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="animeDetailModalLabel">Anime Details</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- The content gets populated dynamically via JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 {% endblock %}
 
@@ -18,6 +37,9 @@
 {% block scripts %}
     <script>
         window.addEventListener('DOMContentLoaded', (event) => {
+            const myAnimeList = document.getElementById('myAnimeList');
+            const animeDetailModal = new bootstrap.Modal(document.getElementById('animeDetailModal'), {keyboard: true});
+
             fetch('/my_anime_list', {
                 method: 'GET',
                 headers: {
@@ -26,35 +48,52 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    const myAnimeList = document.getElementById('myAnimeList');
                     myAnimeList.innerHTML = data.length ?
-                        data.map((item, index) =>
+                        data.map((item) =>
                             `<div class="d-flex justify-content-between align-items-center">
-            <p>${item['title']}</p>
-            <button onclick="deleteAnime(${item['mal_id']})" class="btn btn-danger btn-sm">Delete</button>
-          </div>`
+                        <p style="cursor: pointer;" onclick="showAnimeDetails(${JSON.stringify(item).replace(/"/g, '&quot;')})">${item.title}</p>
+                        <button onclick="deleteAnime(${item.mal_id})" class="btn btn-danger btn-sm">Delete</button>
+                    </div>`
                         ).join('')
                         : '<p>No animes found.</p>';
                 })
                 .catch(() => {
                     myAnimeList.innerHTML = 'An error occurred while fetching the anime list!';
                 });
-        });
 
-        function deleteAnime(mal_id) {
-            fetch('/delete_anime', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({mal_id: mal_id})
-            }).then(
-                response => {
-                    console.log(response);
-                    window.location.reload();
-                }
-            )
-                .catch(err => console.error(err));
-        }
+            window.showAnimeDetails = function (item) {
+                const modalBody = document.querySelector('#animeDetailModal .modal-body');
+                modalBody.innerHTML = `
+                <img src="${item.main_picture}" alt="Main Picture" style="width:100%; height:auto; margin-bottom: 20px;">
+                <div class="text-left">
+                    <p><strong>Title:</strong> ${item.title}</p>
+                    <p><strong>Episodes:</strong> ${item.episodes}</p>
+                    <p><strong>Popularity:</strong> ${item.popularity}</p>
+                    <p><strong>Rating:</strong> ${item.rating}</p>
+                    <p><strong>Duration:</strong> ${item.duration} minutes per episode</p>
+                    <p><strong>Genre:</strong> ${item.genre_list.join(', ')}</p>
+                    <p><strong>Synopsis:</strong> ${item.synopsis}</p>
+                </div>
+            `;
+                animeDetailModal.show();
+            };
+
+            window.deleteAnime = function (mal_id) {
+                fetch('/delete_anime', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({mal_id: mal_id})
+                }).then(
+                    response => {
+                        console.log(response);
+                        window.location.reload();
+                    }
+                )
+                    .catch(err => console.error(err));
+            };
+        });
     </script>
+
 {% endblock %}

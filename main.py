@@ -199,8 +199,6 @@ async def account(request: Request):
 
     user = get_current_user(token)
 
-    user = get_current_user(token)
-
     fallback_photo = base64.b64encode(open("user_photos/rmol.png", "rb").read()).decode()
     user_photo_b64 = fallback_photo
 
