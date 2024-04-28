@@ -11,9 +11,18 @@
     Generate Recommendation
   </button>
 
-  <div id="output" class="mt-4">
-    <!-- Placeholder for output -->
+  <!-- Integrated spinner and output with specified width for output -->
+  <div id="contentContainer" class="d-flex justify-content-center align-items-center mt-4" style="min-height: 200px;">
+    <!-- Spinner (hidden by default) -->
+    <div id="spinner" class="spinner-border text-primary" style="display: none;" role="status">
+      <span class="sr-only">😱</span>
+    </div>
+    <!-- Placeholder for output with increased width -->
+    <div id="output" style="display: none; width: 100%; max-width: 800px;">
+      <!-- Output will be inserted here -->
+    </div>
   </div>
+
 </div>
 {% endblock %}
 
@@ -21,32 +30,43 @@
 <script>
   const generateBtn = document.getElementById('generateBtn');
   const output = document.getElementById('output');
+  const spinner = document.getElementById('spinner');
+  const contentContainer = document.getElementById('contentContainer');
 
   generateBtn.addEventListener('click', () => {
+    // Show the spinner
+    spinner.style.display = 'block';
+    output.style.display = 'none'; // Ensure output is not visible while loading
+    output.innerHTML = '';  // Clear previous results
+
     fetch('/generate_recommendation', {
       method: 'POST',
     })
     .then(response => response.json())
     .then(data => {
+      spinner.style.display = 'none';  // Hide the spinner
+      output.style.display = 'block';  // Make output visible
       output.innerHTML = data.map((item, index) =>
         `<div class="d-flex justify-content-between align-items-center">
           <p>${item['title']}</p>
-          <button onclick="postNice(${index})" class="btn btn-success btn-sm">Nice</button>
+          <button onclick="postAddAnime(${item['mal_id']})" class="btn btn-success btn-sm">Nice</button>
         </div>`
       ).join('');
     })
     .catch(() => {
+      spinner.style.display = 'none';  // Ensure spinner is hidden on error
+      output.style.display = 'block';
       output.innerHTML = 'An error occurred!';
     });
   });
 
-  function postNice(index) {
-    fetch('/nice_anime', {
+  function postAddAnime(mal_id) {
+    fetch('/add_anime', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({index: index})
+      body: JSON.stringify({mal_id: mal_id})
     }).then(response => console.log(response))
     .catch(err => console.error(err));
   }

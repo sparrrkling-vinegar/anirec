@@ -2,7 +2,7 @@ from typing import Annotated, List
 
 import jwt
 from fastapi import FastAPI, Request, Form, HTTPException, UploadFile, File, Depends
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import  JSONResponse, HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -22,6 +22,9 @@ from svc import schemas as svc_schemas
 from svc.myanimelist_service import AnimeApiService, BaseAnimeApiService
 import typing
 import base64
+
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -51,6 +54,20 @@ recommendations_service: RecommendationsService = BaseRecommendationsService(
     anime_api_service=anime_list
 )
 
+class UnauthorizedException(HTTPException):
+    def __init__(self):
+        super().__init__(status_code=401, detail="Unauthorized Access")
+
+@app.exception_handler(UnauthorizedException)
+async def unauthorized_exception_handler(request: Request, exc: UnauthorizedException):
+    return RedirectResponse(url="/", status_code=303)
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 401:
+        return RedirectResponse(url="/", status_code=303)
+    # Handle other HTTP exceptions or pass them through
+    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
@@ -150,6 +167,11 @@ def check_token(request: Request, form_data: Annotated[OAuth2PasswordRequestForm
 
 @app.get("/internal", response_class=HTMLResponse)
 async def internal(request: Request):
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        raise UnauthorizedException()
+
     return templates.TemplateResponse("internal/internal.html", {"request": request})
 
 
@@ -165,9 +187,7 @@ async def account(request: Request):
     token = request.cookies.get("access_token")
 
     if token is None:
-        return HTMLResponse()
-
-    user = get_current_user(token)
+        raise UnauthorizedException()
 
     try:
         user = user_service.get(username=user.username)
@@ -192,15 +212,15 @@ async def account(request: Request):
 
 @app.post("/update_account", response_class=HTMLResponse)
 async def update_account(request: Request, password: str = Form(None), photo: UploadFile = File(None)):
-    user_service = UserServiceFactory.make()
-
     token = request.cookies.get("access_token")
 
     if token is None:
-        return HTMLResponse()
+        raise UnauthorizedException()
+
+    user_service = UserServiceFactory.make()
 
     user = get_current_user(token)
-    
+
     def error_response_factory(error: str) -> HTMLResponse:
         resp = templates.TemplateResponse(
             # for debugging user.icon should be '/user_photos/rmol.png'
@@ -211,7 +231,7 @@ async def update_account(request: Request, password: str = Form(None), photo: Up
                 "anime": user.anime,
                 "error": error
             })
-        
+
         return resp
     
     data = None
@@ -232,7 +252,7 @@ async def update_account(request: Request, password: str = Form(None), photo: Up
 
 
     except WeakPassword:
-        return error_response_factory("Weak password") 
+        return error_response_factory("Weak password")
     except UserDoesNotExist:
         return error_response_factory("User does not exist")
 
@@ -249,7 +269,7 @@ async def get_recommendation(request: Request):
     token = request.cookies.get("access_token")
 
     if token is None:
-        return HTMLResponse()
+        raise UnauthorizedException()
 
     user = get_current_user(token)
     return templates.TemplateResponse("internal/recommendation.html", {"request": request})
@@ -260,7 +280,7 @@ async def generate_recommendation(request: Request) -> List[schemas.Anime]:
     token = request.cookies.get("access_token")
 
     if token is None:
-        return HTMLResponse()
+        raise UnauthorizedException()
 
     user = get_current_user(token)
     anime = recommendations_service.get_recommendations(user.anime)
@@ -282,8 +302,10 @@ class Search(BaseModel):
 @app.get("/my_anime_list")
 async def my_anime_list(request: Request):
     token = request.cookies.get("access_token")
+
     if token is None:
-        return HTMLResponse()
+        raise UnauthorizedException()
+
     user = get_current_user(token)
     return user.anime
 
@@ -293,7 +315,7 @@ async def add_anime(request: Request, add: AddAnime):
     token = request.cookies.get("access_token")
 
     if token is None:
-        return HTMLResponse()
+        raise UnauthorizedException()
 
     user = get_current_user(token)
     enrollment_service.connect(user.username, add.mal_id)
@@ -307,7 +329,7 @@ async def delete_anime(request: Request, delete: DeleteAnime):
     token = request.cookies.get("access_token")
 
     if token is None:
-        return HTMLResponse()
+        raise UnauthorizedException()
 
     user = get_current_user(token)
     enrollment_service.disconnect(user.username, delete.mal_id)
@@ -318,7 +340,22 @@ async def delete_anime(request: Request, delete: DeleteAnime):
 
 @app.get("/search_page", response_class=HTMLResponse)
 async def get_search_page(request: Request):
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        raise UnauthorizedException()
+
     return templates.TemplateResponse("internal/search.html", {"request": request})
+
+
+@app.get("/my_anime_list_page", response_class=HTMLResponse)
+async def get_search_page(request: Request):
+    token = request.cookies.get("access_token")
+
+    if token is None:
+        raise UnauthorizedException()
+
+    return templates.TemplateResponse("internal/my_anime_list.html", {"request": request})
 
 
 @app.post("/search")

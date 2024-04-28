@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "jinjahtmlfast"
+name = "anirec"
 version = "0.1.0"
 description = ""
 authors = ["Roman Molochkov <molochkov2017@gmail.com>"]
