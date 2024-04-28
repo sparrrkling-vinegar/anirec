@@ -202,15 +202,16 @@ async def update_account(request: Request, password: str = Form(...), photo: typ
 
 
     except WeakPassword:
-        return error_response_factory("Weak password")  # return "Weak password"  # TODO: add template rendering or redirect
+        return error_response_factory("Weak password") 
     except UserDoesNotExist:
-        return error_response_factory("User does not exist")  # return "Weak password"  # TODO: add template rendering or redirect
+        return error_response_factory("User does not exist")
 
     token = auth_handler.create_access_token(user.username)
-    # return RedirectResponse(
-    #     url="/account",
-    #     status_code=303
-    # )
+
+    return RedirectResponse(
+        url="/account",
+        status_code=303
+    )
 
 
 @app.get("/recommendation", response_class=HTMLResponse)
