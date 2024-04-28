@@ -8,7 +8,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-import fastapi
 import schemas
 from auth.security import AuthHandler
 from database import get_db
@@ -17,11 +16,12 @@ from repositories.anime_repository import AnimeRepository
 from repositories.user_repository import UserRepository
 from services.anime_service import AnimeAlreadyExists, AnimeService
 from services.enroll_service import EnrollService
-from services.user_service import UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword, UserService
+from services.user_service import UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword, UserServiceFactory, UserService
 from svc import schemas as svc_schemas
 
 from svc.myanimelist_service import AnimeApiService, BaseAnimeApiService
 import typing
+import base64
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -159,6 +159,7 @@ async def logout():
     resp.delete_cookie("access_token")
     return resp
 
+
 @app.get("/account", response_class=HTMLResponse)
 async def account(request: Request):
     token = request.cookies.get("access_token")
@@ -172,27 +173,31 @@ async def account(request: Request):
         user = user_service.get(username=user.username)
     except UserDoesNotExist:
         return "User does not exist."
+    
+    fallback_photo = base64.b64encode(open("user_photos/rmol.png", "rb").read()).decode()
+    user_photo_b64 = fallback_photo
+    
+    if user.icon is not None and user.icon != "":
+        user_photo_b64 = user.icon
 
     return templates.TemplateResponse(
         # for debugging user.icon should be '/user_photos/rmol.png'
         "internal/account.html", {
             "request": request,
             "username": user.username,
-            "photo": user.icon or None,
+            "photo": user_photo_b64,
             "anime": user.anime
         })
 
 
 @app.post("/update_account", response_class=HTMLResponse)
-async def update_account(request: Request, password: str = Form(...), photo: typing.Optional[UploadFile] = File(...)):
+async def update_account(request: Request, password: str = Form(None), photo: UploadFile = File(None)):
     user_service = UserServiceFactory.make()
 
     token = request.cookies.get("access_token")
 
     if token is None:
         return HTMLResponse()
-    if photo is None:
-        return "photo is none"
 
     user = get_current_user(token)
     
@@ -208,15 +213,22 @@ async def update_account(request: Request, password: str = Form(...), photo: typ
             })
         
         return resp
+    
+    data = None
+    if photo is not None:
+        data = await photo.read()
+        
 
     try:
         user_service.update(
             user.username,
             schemas.EditUser(
-                icon=None,
-                password=password
+                icon=base64.b64encode(data).decode(),
+                password=password or user.password
             )
         )
+
+        print("zalupa", user.icon)
 
 
     except WeakPassword:
