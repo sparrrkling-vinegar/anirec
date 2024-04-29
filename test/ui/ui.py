@@ -44,7 +44,6 @@ class TestHomePage(unittest.TestCase):
     def setUp(self):
         options = Options()
         options.add_argument("--headless")
-        options.binary_location = '/usr/bin/firefox'
         self.driver = webdriver.Firefox(options=options)
 
     def test_home_page_loaded(self):
@@ -74,7 +73,6 @@ class TestInternalPage(unittest.TestCase):
     def setUp(self):
         options = Options()
         options.add_argument("--headless")
-        options.binary_location = '/usr/bin/firefox'
         self.driver = webdriver.Firefox(options=options)
 
         self.driver.get(f"{API_URL}/signin")
@@ -125,7 +123,6 @@ class TestLoginPage(unittest.TestCase):
     def setUp(self):
         options = Options()
         options.add_argument("--headless")
-        options.binary_location = '/usr/bin/firefox'
         self.driver = webdriver.Firefox(options=options)
 
     def test_title(self):
@@ -168,7 +165,6 @@ class TestRecommendationPage(unittest.TestCase):
     def setUp(self):
         options = Options()
         options.add_argument("--headless")
-        options.binary_location = '/usr/bin/firefox'
         self.driver = webdriver.Firefox(options=options)
 
         self.driver.get(f"{API_URL}/signin")
@@ -223,7 +219,6 @@ class TestSearchPage(unittest.TestCase):
     def setUp(self):
         options = Options()
         options.add_argument("--headless")
-        options.binary_location = '/usr/bin/firefox'
         self.driver = webdriver.Firefox(options=options)
 
         self.driver.get(f"{API_URL}/signin")
@@ -281,7 +276,6 @@ class TestSignupPage(unittest.TestCase):
     def setUp(self):
         options = Options()
         options.add_argument("--headless")
-        options.binary_location = '/usr/bin/firefox'
         self.driver = webdriver.Firefox(options=options)
 
         self.driver.get(f'{API_URL}/signup')
