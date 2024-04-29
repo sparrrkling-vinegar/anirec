@@ -7,7 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-API_URL = "http://localhost:8000"
+API_URL = "http://anirec.ddns.net"
 username = "testuser_internal"
 password = "Secure!123Password"
 
