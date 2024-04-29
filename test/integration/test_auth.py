@@ -13,18 +13,27 @@ class TestAuth(unittest.TestCase):
 
     @pytest.mark.order(0)
     def test_signup_weak_password(self):
-        response = self.client.post("/signup", data={"username": "user", "password": "WeakPassword"})
+        response = self.client.post("/signup", data={
+            "username": "user",
+            "password": "WeakPassword"
+        })
         self.assertEqual(response.status_code, 400)
         self.assertIn("Weak password.", response.text)
 
     @pytest.mark.order(1)
     def test_signup_success(self):
-        response = self.client.post("/signup", data={"username": "user", "password": "StrongPassword123!"})
+        response = self.client.post("/signup", data={
+            "username": "user",
+            "password": "StrongPassword123!"
+        })
         self.assertEqual(response.status_code, 200)
 
     @pytest.mark.order(2)
     def test_signup_failure_user_exists(self):
-        response = self.client.post("/signup", data={"username": "user", "password": "StrongPassword123!"})
+        response = self.client.post("/signup", data={
+            "username": "user",
+            "password": "StrongPassword123!"
+        })
         self.assertEqual(response.status_code, 400)
         self.assertIn("Username already exists", response.text)
 
@@ -38,11 +47,16 @@ class TestAuth(unittest.TestCase):
 
     @pytest.mark.order(2)
     def test_login_with_incorrect_password(self):
-        response = self.client.post("/signin", data={"username": "user", "password": "1WrongPassword!"})
+        response = self.client.post("/signin", data={
+            "username": "user",
+            "password": "1WrongPassword!"
+        })
         self.assertIn("Incorrect password.", response.text)
 
     @pytest.mark.order(2)
     def test_login_success(self):
-        response = self.client.post("/signin", data={"username": "user", "password": "StrongPassword123!"})
+        response = self.client.post("/signin", data={
+            "username": "user",
+            "password": "StrongPassword123!"
+        })
         self.assertEqual(response.status_code, 200)
-
