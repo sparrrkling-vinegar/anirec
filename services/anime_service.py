@@ -1,6 +1,5 @@
+from repositories import schemas
 from repositories.anime_repository import AnimeRepository
-from database import get_db
-import schemas
 
 
 class AnimeAlreadyExists(Exception):
@@ -29,10 +28,3 @@ class AnimeService:
         if self.__anime_repository.get(mal_id) is None:
             raise AnimeDoesNotExist()
         self.__anime_repository.delete(mal_id)
-
-
-class AnimeServiceFactory:
-    @staticmethod
-    def make() -> AnimeService:
-        anime_repository = AnimeRepository(get_db())
-        return AnimeService(anime_repository)

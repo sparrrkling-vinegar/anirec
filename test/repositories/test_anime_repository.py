@@ -1,10 +1,11 @@
 import unittest
-import schemas
+
+from repositories import schemas
 from database import get_db
 from repositories.anime_repository import AnimeRepository
 
 
-class AnimeRepositoryTests(unittest.TestCase):
+class TestAnimeRepository(unittest.TestCase):
     repository = AnimeRepository(get_db("sqlite:///:memory:"))
     test_anime = schemas.Anime(
         mal_id=1,
@@ -41,6 +42,11 @@ class AnimeRepositoryTests(unittest.TestCase):
     def test_create_anime(self):
         self.repository.create(self.test_anime)
         self.assertEqual(self.test_anime, self.repository.get(mal_id=1))
+        self.repository.delete(self.test_anime.mal_id)
+
+    def test_get_existing_anime(self):
+        self.repository.create(self.test_anime)
+        self.assertEqual(self.repository.get(mal_id=1), self.test_anime)
         self.repository.delete(self.test_anime.mal_id)
 
     def test_get_not_existing_anime(self):
@@ -132,7 +138,3 @@ class AnimeRepositoryTests(unittest.TestCase):
 
         for anim in anime:
             self.repository.delete(anim.mal_id)
-
-
-if __name__ == '__main__':
-    unittest.main()

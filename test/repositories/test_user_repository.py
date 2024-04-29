@@ -1,11 +1,13 @@
 import unittest
-import schemas
-from database import get_db
+from unittest.mock import Mock
+
+from repositories import schemas
+from database import get_db, SessionLocal
+from repositories.anime_repository import AnimeRepository
 from repositories.user_repository import UserRepository
 
 
-class UserRepositoryTests(unittest.TestCase):
-    repository = UserRepository(get_db("sqlite:///:memory:"))
+class TestUserRepository(unittest.TestCase):
     create_user = schemas.CreateUser(
         username="Anton",
         icon="None",
@@ -18,6 +20,23 @@ class UserRepositoryTests(unittest.TestCase):
         password="<PASSWORD>",
         anime=[]
     )
+
+    test_anime = schemas.Anime(
+        mal_id=1,
+        title="Death Note",
+        main_picture="None",
+        popularity=100,
+        synopsis="Note and death",
+        rating="BS21",
+        genre_list=["Drama", "Thriller"],
+        episodes=10,
+        duration=123
+    )
+
+    def setUp(self):
+        self.db = get_db("sqlite:///:memory:")
+        self.repository = UserRepository(self.db)
+        self.anime_repository = AnimeRepository(self.db)
 
     def test_create_user(self):
         self.repository.create(self.create_user)
@@ -121,6 +140,39 @@ class UserRepositoryTests(unittest.TestCase):
         for user in users_to_create:
             self.repository.delete(user.username)
 
+    def test_add_anime_user_not_found(self):
+        result = self.repository.add_anime('non-existent-user', 1)
+        self.assertEqual(result, False)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_add_anime_already_added(self):
+        self.repository.create(self.create_user)
+        self.repository.add_anime(self.create_user.username, 1)
+        result = self.repository.add_anime(self.create_user.username, 1)
+        self.assertEqual(result, False)
+        self.repository.delete(self.create_user.username)
+
+    def test_add_anime(self):
+        self.repository.create(self.create_user)
+        self.anime_repository.create(self.test_anime)
+        result = self.repository.add_anime(self.create_user.username, 1)
+        self.assertEqual(result, True)
+        user = self.repository.get(self.create_user.username)
+        self.assertEqual(user.anime[0].mal_id, 1)
+        self.anime_repository.delete(self.test_anime.mal_id)
+        self.repository.delete(self.create_user.username)
+
+    def test_delete_anime_user_not_found(self):
+        result = self.repository.delete_anime(self.create_user.username, 1)
+        self.assertEqual(result, False)
+
+    def test_delete_anime_not_associated(self):
+        self.repository.create(self.create_user)
+        result = self.repository.delete_anime(self.create_user.username, 1)
+        self.assertEqual(result, False)
+
+    def test_delete_anime(self):
+        self.repository.create(self.create_user)
+        self.anime_repository.create(self.test_anime)
+        self.repository.add_anime(self.create_user.username, self.test_anime.mal_id)
+        result = self.repository.delete_anime(self.create_user.username, self.test_anime.mal_id)
+        self.assertEqual(result, True)

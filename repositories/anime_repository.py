@@ -1,8 +1,9 @@
+from typing import Optional, List
+
+from repositories import schemas
 from database import get_db
 from database.models import Anime, User
-import schemas
 from repositories.utils import convert_anime, convert_user
-from typing import Optional, List
 
 
 class AnimeRepository:
@@ -62,26 +63,6 @@ class AnimeRepository:
             db_anime.duration = anime_info.duration
         self.db.commit()
 
-    def add_user(self, username: str, mal_id: int):
-        db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
-        if db_anime is None or username in map(lambda x: x.username, db_anime.users):
-            return
-        db_user = self.db.query(User).filter(User.username == username).first()
-        if db_user is None:
-            return
-        db_anime.users.append(db_user)
-        self.db.commit()
-
-    def delete_user(self, username: str, mal_id: int):
-        db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
-        if db_anime is None or username not in map(lambda x: x.username, db_anime.users):
-            return
-        db_user = self.db.query(User).filter(User.username == username).first()
-        if db_user is None:
-            return
-        db_anime.users.remove(db_user)
-        self.db.commit()
-
     def list(self, skip: int = 0, limit: int = 100) -> list[Anime]:
         return list(
             map(
@@ -100,36 +81,3 @@ class AnimeRepository:
                 db_anime.users
             )
         )
-
-
-if __name__ == "__main__":
-    anime_service = AnimeRepository(get_db())
-    anime_service.create(
-        schemas.Anime(
-            mal_id="1",
-            title="Death Note",
-            main_picture="None",
-            popularity=100,
-            synopsis="Note and death",
-            rating="BS21",
-            genre_list=["Drama", "Thriller"],
-            episodes=10,
-            duration=123
-        )
-    )
-    # print(anime_service.get("1"))
-    # print(anime_service.list())
-    # anime_service.delete(mal_id="1")
-    # anime_service.edit(
-    #     schemas.EditAnime(
-    #         mal_id="1",
-    #         title="THE BEST ANIME"
-    #     )
-    # )
-    # anime_service.add_user("Anton", "1")
-    anime_service.delete_user("Anton", "1")
-    # print(anime_service.list())
-
-    # print(us.get_user(
-    #     GetUser(username="Anton")
-    # ))

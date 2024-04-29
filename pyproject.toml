@@ -24,6 +24,8 @@ myanimelistpy = "^0.1.4"
 pyjwt = "^2.8.0"
 flake8 = "^7.0.0"
 bandit = "^1.7.8"
+selenium = "^4.20.0"
+pytest-cov = "^5.0.0"
 
 
 [build-system]

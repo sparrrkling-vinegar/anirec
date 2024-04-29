@@ -1,11 +1,9 @@
-from myanimelistpy.myanimelist import MyAnimeList
 from abc import ABC, abstractmethod
+
 import requests
-import os
+from myanimelistpy.myanimelist import MyAnimeList
 
 from svc import schemas
-
-CLIENT_ID = "08914cffcc9596a955b15a1e365ab9ff"
 
 
 class AnimeApiService(ABC):
@@ -99,17 +97,3 @@ class BaseAnimeApiService(AnimeApiService):
             )
 
         return res
-
-
-class AnimeServiceFactory:
-    @staticmethod
-    def make():
-        return BaseAnimeApiService(client_id=CLIENT_ID)
-
-
-if __name__ == "__main__":
-    anime_service: AnimeApiService = BaseAnimeApiService(client_id=CLIENT_ID)
-    an = anime_service.get_random_anime(2)
-
-    for a in an:
-        print(a)

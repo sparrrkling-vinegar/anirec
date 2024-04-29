@@ -1,5 +1,5 @@
 import database
-import schemas
+from repositories import schemas
 
 
 def convert_anime(anime: database.Anime) -> schemas.Anime:

@@ -1,7 +1,5 @@
-from repositories.user_repository import UserRepository
 from repositories.anime_repository import AnimeRepository
-from database import get_db
-import schemas
+from repositories.user_repository import UserRepository
 
 
 class EnrollService:
@@ -15,11 +13,3 @@ class EnrollService:
 
     def disconnect(self, username: str, mal_id: int):
         self.__user_repository.delete_anime(username, mal_id)
-
-
-class EnrollServiceFactory:
-    @staticmethod
-    def make() -> EnrollService:
-        user_repository = UserRepository(get_db())
-        anime_repository = AnimeRepository(get_db())
-        return EnrollService(user_repository, anime_repository)
