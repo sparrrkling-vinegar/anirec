@@ -70,6 +70,10 @@ jobs:
   selenium:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        firefox: [ '84.0', 'devedition-84.0b1', 'latest-beta', 'latest-devedition', 'latest-nightly', 'latest-esr', 'latest' ]
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -79,10 +83,19 @@ jobs:
         with:
           python-version: 3.11
 
+      - name: Setup firefox
+        id: setup-firefox
+        uses: browser-actions/setup-firefox@v1
+        with:
+          firefox-version: ${{ matrix.firefox }}
+            - run: |
+                echo Installed firefox versions: ${{ steps.setup-firefox.outputs.firefox-version }}
+                ${{ steps.setup-firefox.outputs.firefox-path }} --version
+
       - name: Install dependencies
         run: |
           sudo apt update -y && \
-          sudo apt install -y sqlcipher libsqlcipher-dev firefox && \
+          sudo apt install -y sqlcipher libsqlcipher-dev && \
           python -m pip install --upgrade pip && \
           pip install poetry && \
           poetry install
