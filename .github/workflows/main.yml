@@ -65,7 +65,7 @@ jobs:
           pip install poetry && \
           poetry install
       - name: Run bandit
-        run: poetry run bandit -r .
+        run: poetry run bandit -r . -x ./test
 
   selenium:
     runs-on: ubuntu-latest
