@@ -4,7 +4,10 @@ from database.database import DataAccessLayer
 
 from database.models import *
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./anirec.db"
+# TODO: move to .env configuration
+DATABASE_PASSWORD = "abobus"
+
+SQLALCHEMY_DATABASE_URL = f'sqlite+pysqlcipher://:{DATABASE_PASSWORD}@/anirec.db?cipher=aes-256-cfb&kdf_iter=64000'
 dal = None
 SessionLocal = None
 

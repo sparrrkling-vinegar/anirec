@@ -74,7 +74,7 @@ class BaseAnimeApiService(AnimeApiService):
             synopsis = "" if (syn := data["synopsis"]) is None else syn
             popularity = data["popularity"]
             episodes = -1 if (ep := data["episodes"]) is None else ep
-            rating = data["rating"]
+            rating = "" if (rat := data["rating"]) is None else rat
             try:
                 duration = int(data["duration"].split()[0])  # !!"24 min per ep"!!
             except ValueError as e:
