@@ -88,35 +88,35 @@ class TestInternalPage(unittest.TestCase):
         self.driver.get(f'{API_URL}/internal')
 
 
-def test_page_title(self):
-    # Confirm that the internal page title is correct
-    self.assertIn('Internal Page', self.driver.title)
+    def test_page_title(self):
+        # Confirm that the internal page title is correct
+        self.assertIn('Internal Page', self.driver.title)
 
 
-def test_welcome_message(self):
-    # Ensure that the welcome message is displayed correctly
-    welcome_message = self.driver.find_element(By.XPATH, "//h2[contains(text(), 'Welcome to Internal Page!')]")
-    self.assertTrue(welcome_message.is_displayed())
+    def test_welcome_message(self):
+        # Ensure that the welcome message is displayed correctly
+        welcome_message = self.driver.find_element(By.XPATH, "//h2[contains(text(), 'Welcome to Internal Page!')]")
+        self.assertTrue(welcome_message.is_displayed())
 
 
-def test_navigation_links(self):
-    # Check that navigation links (from the base template) are present and correctly linked
-    links = {
-        "Search": "/search_page",
-        "Home": "/internal",
-        "Generate": "/recommendation",
-        "Logout": "/logout",
-        "Account Details": "/account"
-    }
+    def test_navigation_links(self):
+        # Check that navigation links (from the base template) are present and correctly linked
+        links = {
+            "Search": "/search_page",
+            "Home": "/internal",
+            "Generate": "/recommendation",
+            "Logout": "/logout",
+            "Account Details": "/account"
+        }
 
-    for link_text, url_extension in links.items():
-        link = self.driver.find_element(By.LINK_TEXT, link_text)
-        self.assertIn(url_extension, link.get_attribute('href'))
+        for link_text, url_extension in links.items():
+            link = self.driver.find_element(By.LINK_TEXT, link_text)
+            self.assertIn(url_extension, link.get_attribute('href'))
 
 
-def tearDown(self):
-    # Close browser window
-    self.driver.close()
+    def tearDown(self):
+        # Close browser window
+        self.driver.close()
 
 
 class TestLoginPage(unittest.TestCase):
@@ -125,7 +125,7 @@ class TestLoginPage(unittest.TestCase):
         options.add_argument("--headless")
         self.driver = webdriver.Firefox(options=options)
 
-def test_title(self):
+    def test_title(self):
         # Test to check if the title of the login page is correct
         self.driver.get(f'{API_URL}/signin')
         self.assertIn('Welcome to AniRec!', self.driver.title)
