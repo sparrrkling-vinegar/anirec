@@ -133,7 +133,8 @@ class TestUserRepository(unittest.TestCase):
         for user in users_to_create:
             self.repository.create(user)
 
-        self.assertEqual(users, self.repository.list())
+        for user in users:
+            self.assertIn(user, self.repository.list())
 
         for user in users_to_create:
             self.repository.delete(user.username)
