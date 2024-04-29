@@ -2,15 +2,7 @@ name: ci
 
 on:
   push:
-    paths:
-      - '**.py'
-      - '**.html'
-    branches: [ "main" ]
   pull_request:
-    paths:
-      - '**.py'
-      - '**.html'
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
