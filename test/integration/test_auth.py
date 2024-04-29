@@ -27,6 +27,7 @@ class TestAuth(unittest.TestCase):
             "password": "StrongPassword123!"
         })
         self.assertEqual(response.status_code, 200)
+        self.assertIn('access_token', response.history[0].cookies)
 
     @pytest.mark.order(2)
     def test_signup_failure_user_exists(self):
@@ -60,3 +61,4 @@ class TestAuth(unittest.TestCase):
             "password": "StrongPassword123!"
         })
         self.assertEqual(response.status_code, 200)
+        self.assertIn('access_token', response.history[0].cookies)
