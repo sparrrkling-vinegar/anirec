@@ -57,4 +57,3 @@ class TestInternalPage(unittest.TestCase):
     def tearDown(self):
         # Close browser window
         self.driver.close()
-

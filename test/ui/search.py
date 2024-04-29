@@ -66,4 +66,3 @@ class TestSearchPage(unittest.TestCase):
     def tearDown(self):
         # Close the browser after tests
         self.driver.close()
-

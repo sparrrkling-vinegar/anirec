@@ -8,6 +8,7 @@ API_URL = "http://anirec.ddns.net"
 username = "testuser_internal"
 password = "Secure!123Password"
 
+
 class TestHomePage(unittest.TestCase):
 
     def setUp(self):
