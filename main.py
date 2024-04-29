@@ -191,6 +191,8 @@ async def account(request: Request):
 
     if token is None:
         raise UnauthorizedException()
+    
+    user = get_current_user(token)
 
     user = get_current_user(token)
 
