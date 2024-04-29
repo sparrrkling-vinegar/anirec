@@ -88,9 +88,9 @@ jobs:
         uses: browser-actions/setup-firefox@v1
         with:
           firefox-version: latest
-            - run: |
-                echo Installed firefox versions: ${{ steps.setup-firefox.outputs.firefox-version }}
-                ${{ steps.setup-firefox.outputs.firefox-path }} --version
+        run: |
+          echo Installed firefox versions: ${{ steps.setup-firefox.outputs.firefox-version }}
+          ${{ steps.setup-firefox.outputs.firefox-path }} --version
 
       - name: Install dependencies
         run: |
