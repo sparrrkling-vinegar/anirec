@@ -76,26 +76,3 @@ class UserRepository:
             )
         )
 
-
-if __name__ == "__main__":
-    us = UserRepository()
-    us.create(
-        schemas.CreateUser(
-            username="Anton",
-            icon="None",
-            password="<PASSWORD>"
-        )
-    )
-    # us.delete(username="Anton")
-    # us.edit(
-    #     schemas.EditUser(
-    #         username="Anton",
-    #         icon="SOME",
-    #         password="YA ANTON"
-    #     ))
-    # us.add_anime(username="Anton", mal_id="1")
-    # us.delete_anime(username="Anton", mal_id="1")
-    print(us.get(
-        username="Anton"
-    ))
-    print(us.list())
