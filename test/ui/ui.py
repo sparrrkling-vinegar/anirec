@@ -6,10 +6,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.firefox.options import Options
 
 API_URL = "http://anirec.ddns.net"
 username = "testuser_internal"
 password = "Secure!123Password"
+
 
 def submit_signup_form(api_url, username, password):
     """
@@ -36,10 +38,13 @@ def submit_signup_form(api_url, username, password):
 
 submit_signup_form(API_URL, username, password)
 
+
 class TestHomePage(unittest.TestCase):
 
     def setUp(self):
-        self.driver = webdriver.Firefox()
+        options = Options()
+        options.add_argument("--headless")
+        self.driver = webdriver.Firefox(options=options)
 
     def test_home_page_loaded(self):
         self.driver.get(API_URL)
@@ -66,7 +71,9 @@ class TestHomePage(unittest.TestCase):
 
 class TestInternalPage(unittest.TestCase):
     def setUp(self):
-        self.driver = webdriver.Firefox()
+        options = Options()
+        options.add_argument("--headless")
+        self.driver = webdriver.Firefox(options=options)
 
         self.driver.get(f"{API_URL}/signin")
         username_input = self.driver.find_element(By.NAME, "username")
@@ -80,40 +87,45 @@ class TestInternalPage(unittest.TestCase):
         self.driver.implicitly_wait(3)
         self.driver.get(f'{API_URL}/internal')
 
-    def test_page_title(self):
-        # Confirm that the internal page title is correct
-        self.assertIn('Internal Page', self.driver.title)
 
-    def test_welcome_message(self):
-        # Ensure that the welcome message is displayed correctly
-        welcome_message = self.driver.find_element(By.XPATH, "//h2[contains(text(), 'Welcome to Internal Page!')]")
-        self.assertTrue(welcome_message.is_displayed())
+def test_page_title(self):
+    # Confirm that the internal page title is correct
+    self.assertIn('Internal Page', self.driver.title)
 
-    def test_navigation_links(self):
-        # Check that navigation links (from the base template) are present and correctly linked
-        links = {
-            "Search": "/search_page",
-            "Home": "/internal",
-            "Generate": "/recommendation",
-            "Logout": "/logout",
-            "Account Details": "/account"
-        }
 
-        for link_text, url_extension in links.items():
-            link = self.driver.find_element(By.LINK_TEXT, link_text)
-            self.assertIn(url_extension, link.get_attribute('href'))
+def test_welcome_message(self):
+    # Ensure that the welcome message is displayed correctly
+    welcome_message = self.driver.find_element(By.XPATH, "//h2[contains(text(), 'Welcome to Internal Page!')]")
+    self.assertTrue(welcome_message.is_displayed())
 
-    def tearDown(self):
-        # Close browser window
-        self.driver.close()
+
+def test_navigation_links(self):
+    # Check that navigation links (from the base template) are present and correctly linked
+    links = {
+        "Search": "/search_page",
+        "Home": "/internal",
+        "Generate": "/recommendation",
+        "Logout": "/logout",
+        "Account Details": "/account"
+    }
+
+    for link_text, url_extension in links.items():
+        link = self.driver.find_element(By.LINK_TEXT, link_text)
+        self.assertIn(url_extension, link.get_attribute('href'))
+
+
+def tearDown(self):
+    # Close browser window
+    self.driver.close()
 
 
 class TestLoginPage(unittest.TestCase):
     def setUp(self):
-        # set up the Firefox WebDriver
-        self.driver = webdriver.Firefox()
+        options = Options()
+        options.add_argument("--headless")
+        self.driver = webdriver.Firefox(options=options)
 
-    def test_title(self):
+def test_title(self):
         # Test to check if the title of the login page is correct
         self.driver.get(f'{API_URL}/signin')
         self.assertIn('Welcome to AniRec!', self.driver.title)
@@ -151,8 +163,9 @@ class TestLoginPage(unittest.TestCase):
 
 class TestRecommendationPage(unittest.TestCase):
     def setUp(self):
-        # Initialize WebDriver for Firefox
-        self.driver = webdriver.Firefox()
+        options = Options()
+        options.add_argument("--headless")
+        self.driver = webdriver.Firefox(options=options)
 
         self.driver.get(f"{API_URL}/signin")
         username_input = self.driver.find_element(By.NAME, "username")
@@ -204,8 +217,9 @@ class TestRecommendationPage(unittest.TestCase):
 
 class TestSearchPage(unittest.TestCase):
     def setUp(self):
-        # Initialize WebDriver for Firefox
-        self.driver = webdriver.Firefox()
+        options = Options()
+        options.add_argument("--headless")
+        self.driver = webdriver.Firefox(options=options)
 
         self.driver.get(f"{API_URL}/signin")
         username_input = self.driver.find_element(By.NAME, "username")
@@ -260,8 +274,10 @@ class TestSearchPage(unittest.TestCase):
 
 class TestSignupPage(unittest.TestCase):
     def setUp(self):
-        # Set up the Firefox WebDriver
-        self.driver = webdriver.Firefox()
+        options = Options()
+        options.add_argument("--headless")
+        self.driver = webdriver.Firefox(options=options)
+
         self.driver.get(f'{API_URL}/signup')
 
     def test_title(self):
