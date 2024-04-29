@@ -36,6 +36,10 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: 3.11
+
+      - name: Install software
+        run: sudo apt-get install -y chromium-browser
+
       - name: Install dependencies
         run: |
           sudo apt update -y && \
@@ -43,6 +47,7 @@ jobs:
           python -m pip install --upgrade pip && \
           pip install poetry && \
           poetry install
+
       - name: Run Tests
         run: poetry run pytest --cov . --cov-branch --cov-report=term --cov-fail-under=60
         env:
@@ -66,45 +71,3 @@ jobs:
           poetry install
       - name: Run bandit
         run: poetry run bandit -r . -x ./test
-
-  selenium:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.11.4
-
-      - name: Setup firefox
-        id: setup-firefox
-        uses: browser-actions/setup-firefox@v1
-        with:
-          firefox-version: latest
-
-      - run: |
-          echo Installed firefox versions: ${{ steps.setup-firefox.outputs.firefox-version }}
-          ${{ steps.setup-firefox.outputs.firefox-path }} --version
-
-      - name: Install Geckodriver
-        run: |
-          wget https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz
-          tar -xzf geckodriver-v0.34.0-linux64.tar.gz
-          sudo mv geckodriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/geckodriver
-
-      - name: Install dependencies
-        run: |
-          sudo apt update -y && \
-          sudo apt install -y sqlcipher libsqlcipher-dev && \
-          python -m pip install --upgrade pip && \
-          pip install poetry && \
-          poetry install
-
-      - name: Run Selenium tests with Poetry
-        run: |
-          poetry run pytest ./test/ui/index.py ./test/ui/internal.py ./test/ui/login.py ./test/ui/recommendation.py ./test/ui/search.py ./test/ui/signup.py
-        

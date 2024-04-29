@@ -25,7 +25,7 @@ class TestInternalPage(unittest.TestCase):
         password_input.send_keys(password + Keys.RETURN)
         submit_button.click()
 
-        self.driver.implicitly_wait(30)
+        self.driver.implicitly_wait(3)
         self.driver.get(f'{API_URL}/internal')
 
     def test_page_title(self):
