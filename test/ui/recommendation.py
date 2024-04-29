@@ -27,7 +27,8 @@ class TestRecommendationPage(unittest.TestCase):
         generate_btn.click()
 
         # Check that the output container is available and could potentially display results
-        # In testing environments, actual data/results are not retrieved, this checks UI responsiveness.
+        # In testing environments, actual data/results are not retrieved,
+        # this checks UI responsiveness.
         output_div = WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.ID, "output"))
         )

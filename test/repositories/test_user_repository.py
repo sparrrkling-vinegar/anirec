@@ -1,8 +1,6 @@
 import unittest
-from unittest.mock import Mock
-
 from repositories import schemas
-from database import get_db, SessionLocal
+from database import get_db
 from repositories.anime_repository import AnimeRepository
 from repositories.user_repository import UserRepository
 

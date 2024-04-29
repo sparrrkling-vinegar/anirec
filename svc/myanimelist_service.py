@@ -77,7 +77,7 @@ class BaseAnimeApiService(AnimeApiService):
             rating = "" if (rat := data["rating"]) is None else rat
             try:
                 duration = int(data["duration"].split()[0])  # !!"24 min per ep"!!
-            except ValueError as e:
+            except ValueError:
                 duration = -1
 
             genres = [genre["name"] for genre in data["genres"]]

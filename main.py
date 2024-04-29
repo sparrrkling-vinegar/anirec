@@ -13,12 +13,14 @@ from pydantic import BaseModel
 from repositories import schemas
 from auth.security import AuthHandler
 from database import get_db
-from recommentations.recommendations_service import BaseRecommendationsService, RecommendationsService
+from recommentations.recommendations_service import (BaseRecommendationsService,
+                                                     RecommendationsService)
 from repositories.anime_repository import AnimeRepository
 from repositories.user_repository import UserRepository
 from services.anime_service import AnimeAlreadyExists, AnimeService
 from services.enroll_service import EnrollService
-from services.user_service import UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword, UserService
+from services.user_service import (UserDoesNotExist, WrongPassword,
+                                   UserAlreadyExists, WeakPassword, UserService)
 from svc import schemas as svc_schemas
 
 from svc.myanimelist_service import AnimeApiService, BaseAnimeApiService
@@ -100,7 +102,10 @@ async def signup(request: Request, username: str = Form(...), password: str = Fo
             )
         )
     except UserAlreadyExists:
-        return failure_response_factory(f"Username already exists.", 400)
+        return failure_response_factory(
+            "Username already exists.",
+            400
+        )
     except WeakPassword:
         return failure_response_factory(
             "Weak password. Password "
@@ -191,7 +196,7 @@ async def account(request: Request):
 
     if token is None:
         raise UnauthorizedException()
-    
+
     user = get_current_user(token)
 
     user = get_current_user(token)
@@ -213,7 +218,11 @@ async def account(request: Request):
 
 
 @app.post("/update_account", response_class=HTMLResponse)
-async def update_account(request: Request, password: str = Form(None), photo: UploadFile = File(None)):
+async def update_account(
+        request: Request,
+        password: str = Form(None),
+        photo: UploadFile = File(None)
+):
     token = request.cookies.get("access_token")
 
     if token is None:
@@ -255,11 +264,13 @@ async def update_account(request: Request, password: str = Form(None), photo: Up
         return error_response_factory("User does not exist")
 
     token = auth_handler.create_access_token(user.username)
-
-    return RedirectResponse(
+    resp = RedirectResponse(
         url="/account",
         status_code=303
     )
+
+    resp.set_cookie(key="access_token", value=token)
+    return resp
 
 
 @app.get("/recommendation", response_class=HTMLResponse)
@@ -269,7 +280,6 @@ async def get_recommendation(request: Request):
     if token is None:
         raise UnauthorizedException()
 
-    user = get_current_user(token)
     return templates.TemplateResponse("internal/recommendation.html", {"request": request})
 
 
@@ -347,7 +357,7 @@ async def get_search_page(request: Request):
 
 
 @app.get("/my_anime_list_page", response_class=HTMLResponse)
-async def get_search_page(request: Request):
+async def my_anime_list_page(request: Request):
     token = request.cookies.get("access_token")
 
     if token is None:

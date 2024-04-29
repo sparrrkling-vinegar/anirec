@@ -30,15 +30,22 @@ class TestSearchPage(unittest.TestCase):
 
         output_div = self.driver.find_element(By.ID, "output")
         self.assertTrue(output_div.is_displayed())
-        # Without a backend to process the post, we're limited to checking the display of the output div here.
+        # Without a backend to process the post,
+        # we're limited to checking the display of the output div here.
 
     def test_navigation_links(self):
         # Basic tests to ensure that navigation links are correctly set up
         home_link = self.driver.find_element(By.LINK_TEXT, 'Home')
-        self.assertEqual(home_link.get_attribute('href'), 'http://localhost:8080/internal')
+        self.assertEqual(
+            home_link.get_attribute('href'),
+            'http://localhost:8080/internal'
+        )
 
         account_details_link = self.driver.find_element(By.LINK_TEXT, 'Account Details')
-        self.assertEqual(account_details_link.get_attribute('href'), 'http://localhost:8080/account')
+        self.assertEqual(
+            account_details_link.get_attribute('href'),
+            'http://localhost:8080/account'
+        )
 
     def tearDown(self):
         # Close the browser after tests

@@ -22,7 +22,8 @@ class WeakPassword(Exception):
 
 
 def check_password(password: str) -> bool:
-    # Password should at least be 8 characters long, have a number, an uppercase and a lowercase letter,
+    # Password should at least be 8 characters long,
+    # have a number, an uppercase and a lowercase letter,
     # and a special character
     # TODO: for debugging only!
     # return True
@@ -70,7 +71,9 @@ class UserService:
             raise WeakPassword()
         self.__user_repository.edit(username, user_info)
 
-        return self.__user_repository.get(username if user_info.username is None else user_info.username)
+        return self.__user_repository.get(
+            username if user_info.username is None else user_info.username
+        )
 
     def list(self, limit=1000) -> List[schemas.User]:
         return self.__user_repository.list(limit=limit)
