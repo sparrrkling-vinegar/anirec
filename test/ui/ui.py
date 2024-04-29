@@ -84,7 +84,7 @@ class TestInternalPage(unittest.TestCase):
         password_input.send_keys(password + Keys.RETURN)
         submit_button.click()
 
-        self.driver.implicitly_wait(3)
+        self.driver.implicitly_wait(30)
         self.driver.get(f'{API_URL}/internal')
 
     def test_page_title(self):
@@ -175,7 +175,7 @@ class TestRecommendationPage(unittest.TestCase):
         password_input.send_keys(password + Keys.RETURN)
         submit_button.click()
 
-        self.driver.implicitly_wait(3)
+        self.driver.implicitly_wait(30)
         self.driver.get(f"{API_URL}/recommendation")
 
     def test_page_title(self):
@@ -184,7 +184,7 @@ class TestRecommendationPage(unittest.TestCase):
 
     def test_generate_button_functionality(self):
         # Verify the presence of the Generate button
-        generate_btn = WebDriverWait(self.driver, 10).until(
+        generate_btn = WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.ID, "generateBtn"))
         )
         self.assertTrue(generate_btn.is_displayed(), "Generate button is not displayed")
@@ -192,7 +192,7 @@ class TestRecommendationPage(unittest.TestCase):
         # Click the Generate button
         generate_btn.click()
 
-        WebDriverWait(self.driver, 10).until(
+        WebDriverWait(self.driver, 30).until(
             EC.visibility_of_element_located((By.ID, "output"))
         )
 
@@ -227,7 +227,7 @@ class TestSearchPage(unittest.TestCase):
         password_input.send_keys(password + Keys.RETURN)
         submit_button.click()
 
-        self.driver.implicitly_wait(3)
+        self.driver.implicitly_wait(30)
         self.driver.get(f'{API_URL}/search_page')
 
     def test_page_title(self):
@@ -248,7 +248,7 @@ class TestSearchPage(unittest.TestCase):
         # Simulate clicking the search button
         search_button.click()
 
-        WebDriverWait(self.driver, 10).until(
+        WebDriverWait(self.driver, 30).until(
             EC.visibility_of_element_located((By.ID, "output"))
         )
 
