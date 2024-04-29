@@ -87,17 +87,17 @@ class TestInternalPage(unittest.TestCase):
         self.driver.implicitly_wait(3)
         self.driver.get(f'{API_URL}/internal')
 
-
     def test_page_title(self):
         # Confirm that the internal page title is correct
         self.assertIn('Internal Page', self.driver.title)
 
-
     def test_welcome_message(self):
         # Ensure that the welcome message is displayed correctly
-        welcome_message = self.driver.find_element(By.XPATH, "//h2[contains(text(), 'Welcome to Internal Page!')]")
+        welcome_message = self.driver.find_element(
+            By.XPATH,
+            "//h2[contains(text(), 'Welcome to Internal Page!')]"
+        )
         self.assertTrue(welcome_message.is_displayed())
-
 
     def test_navigation_links(self):
         # Check that navigation links (from the base template) are present and correctly linked
@@ -112,7 +112,6 @@ class TestInternalPage(unittest.TestCase):
         for link_text, url_extension in links.items():
             link = self.driver.find_element(By.LINK_TEXT, link_text)
             self.assertIn(url_extension, link.get_attribute('href'))
-
 
     def tearDown(self):
         # Close browser window
@@ -193,8 +192,6 @@ class TestRecommendationPage(unittest.TestCase):
         # Click the Generate button
         generate_btn.click()
 
-        # Check that the output container is available and could potentially display results
-        # In testing environments, actual data/results are not retrieved, this checks UI responsiveness.
         WebDriverWait(self.driver, 10).until(
             EC.visibility_of_element_located((By.ID, "output"))
         )
@@ -252,12 +249,11 @@ class TestSearchPage(unittest.TestCase):
         search_button.click()
 
         WebDriverWait(self.driver, 10).until(
-            EC.visibility_of_element_located((By.ID, "output"))  # Waiting for the output container to become visible
+            EC.visibility_of_element_located((By.ID, "output"))
         )
 
         output_div = self.driver.find_element(By.ID, "output")  # Find the output div
         self.assertTrue(output_div.is_displayed(), "Output div is not displayed.")
-        # Without a backend to process the post, we're limited to checking the display of the output div here.
 
     def test_navigation_links(self):
         # Basic tests to ensure that navigation links are correctly set up
@@ -305,9 +301,6 @@ class TestSignupPage(unittest.TestCase):
         self.driver.find_element(By.ID, "form2Example1").send_keys("new_user")
         self.driver.find_element(By.ID, "form2Example2").send_keys("new_password123")
         self.driver.find_element(By.CSS_SELECTOR, "input[type='submit']").click()
-
-        # Further actions to check for successful signup could be added here, e.g., redirection, success message,
-        # or checking error elements if validations fail or display an error message.
 
     def tearDown(self):
         # Close the browser window on test completion
