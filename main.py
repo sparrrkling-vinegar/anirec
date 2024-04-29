@@ -129,7 +129,7 @@ async def login_form(request: Request):
 
 
 # Use this function to exchange your token to your username
-def get_current_user(token: str):
+def get_current_user(token: str) -> schemas.User:
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
@@ -199,8 +199,6 @@ async def account(request: Request):
 
     user = get_current_user(token)
 
-    user = get_current_user(token)
-
     fallback_photo = base64.b64encode(open("user_photos/rmol.png", "rb").read()).decode()
     user_photo_b64 = fallback_photo
 
@@ -251,7 +249,7 @@ async def update_account(
         user_service.update(
             user.username,
             schemas.EditUser(
-                icon=base64.b64encode(data).decode(),
+                icon=base64.b64encode(data).decode() if data is not None else user.icon,
                 password=password or user.password
             )
         )
