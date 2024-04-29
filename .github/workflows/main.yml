@@ -66,3 +66,17 @@ jobs:
           poetry install
       - name: Run bandit
         run: poetry run bandit -r . -x ./test
+
+  semgrep:
+    name: semgrep-oss/scan
+    runs-on: ubuntu-latest
+
+    container:
+      image: semgrep/semgrep
+
+    # Skip any PR created by dependabot to avoid permission issues:
+    if: (github.actor != 'dependabot[bot]')
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: semgrep scan --config auto
