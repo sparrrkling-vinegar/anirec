@@ -65,7 +65,7 @@ class BaseAnimeApiService(AnimeApiService):
         for _ in range(limit):
 
             url = "https://api.jikan.moe/v4/random/anime"
-            resp = requests.get(url=url)
+            resp = requests.get(url=url, timeout=10)
             data = resp.json()["data"]
 
             title = data["title"]

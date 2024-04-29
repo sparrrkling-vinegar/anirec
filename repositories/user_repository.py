@@ -75,4 +75,3 @@ class UserRepository:
                 self.db.query(User).offset(skip).limit(limit).all()
             )
         )
-
