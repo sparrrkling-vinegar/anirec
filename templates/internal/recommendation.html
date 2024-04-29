@@ -67,10 +67,10 @@
                         output.style.display = 'block';
                         output.innerHTML = data.map(item =>
                             `<div class="d-flex justify-content-between align-items-center">
-                    <p style="cursor: pointer;" onclick="showAnimeDetails(${escapeHtml(JSON.stringify(item))})">${item.title}</p>
-                    <button onclick="postAddAnime(${item.mal_id})" class="btn btn-success btn-sm">Add</button>
-                </div>`
-                        ).join('');
+                        <p style="cursor: pointer;" onClick="showTitleDetails(${escapeHtml(JSON.stringify(item))})">${item.title}</p>
+                        <button onclick="postAddAnime(${item['mal_id']})" class="btn btn-success btn-sm">Add</button>
+                </div>
+`).join('');
                     })
                     .catch(() => {
                         spinner.style.display = 'none';
@@ -95,7 +95,7 @@
                 animeDetailModal.show();
             };
 
-            function postAddAnime(mal_id) {
+            window.postAddAnime = function (mal_id) {
                 fetch('/add_anime', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -103,7 +103,7 @@
                 })
                     .then(response => console.log(response))
                     .catch(err => console.error(err));
-            }
+            };
         });
     </script>
 

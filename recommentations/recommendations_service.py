@@ -52,7 +52,10 @@ class BaseRecommendationsService(RecommendationsService):
             result.append(anime)
             if len(result) == limit:
                 return result
-        result.extend(self.__anime_api_service.get_random_anime(limit=limit - len(result)))
+        random_anime = self.__anime_api_service.get_random_anime(limit=limit - len(result))
+        for anime in random_anime:
+            self.__anime_service.add(anime)
+        result.extend(random_anime)
         return list(sorted(result, key=lambda x: -x.popularity))
 
     def __most_watched_categories(self, users_anime: List[schemas.Anime], limit=None) -> List[str]:
