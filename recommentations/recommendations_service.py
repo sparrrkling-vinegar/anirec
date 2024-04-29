@@ -1,4 +1,4 @@
-import schemas
+from repositories import schemas
 from services.anime_service import AnimeService
 from services.enroll_service import EnrollService
 from services.user_service import UserService
