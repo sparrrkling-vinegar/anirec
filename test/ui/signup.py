@@ -36,7 +36,8 @@ class TestSignupPage(unittest.TestCase):
         self.driver.find_element(By.ID, "form2Example2").send_keys("new_password123")
         self.driver.find_element(By.CSS_SELECTOR, "input[type='submit']").click()
 
-        # Further actions to check for successful signup could be added here, e.g., redirection, success message,
+        # Further actions to check for successful signup could be added here, e.g.,
+        # redirection, success message,
         # or checking error elements if validations fail or display an error message.
 
     def tearDown(self):

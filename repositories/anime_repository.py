@@ -1,8 +1,7 @@
 from typing import Optional, List
 
 from repositories import schemas
-from database import get_db
-from database.models import Anime, User
+from database.models import Anime
 from repositories.utils import convert_anime, convert_user
 
 

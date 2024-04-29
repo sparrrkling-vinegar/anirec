@@ -16,7 +16,11 @@ class TestInternalPage(unittest.TestCase):
 
     def test_welcome_message(self):
         # Ensure that the welcome message is displayed correctly
-        welcome_message = self.driver.find_element(By.XPATH, "//h2[contains(text(), 'Welcome to Internal Page!')]")
+        welcome_message = self.driver.find_element(
+            By.XPATH,
+            "//h2[contains(text(),"
+            " 'Welcome to Internal Page!')]"
+        )
         self.assertTrue(welcome_message.is_displayed())
 
     def test_navigation_links(self):

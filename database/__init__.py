@@ -3,11 +3,12 @@ import os
 from sqlalchemy.orm import sessionmaker
 
 from database.database import DataAccessLayer
-from database.models import *
+from database.models import *  # noqa: F401, F403
 
 DATABASE_PASSWORD = os.environ["DATABASE_PASSWORD"]
 
-SQLALCHEMY_DATABASE_URL = f'sqlite+pysqlcipher://:{DATABASE_PASSWORD}@/anirec.db?cipher=aes-256-cfb&kdf_iter=64000'
+SQLALCHEMY_DATABASE_URL = \
+    f'sqlite+pysqlcipher://:{DATABASE_PASSWORD}@/anirec.db?cipher=aes-256-cfb&kdf_iter=64000'
 dal = None
 SessionLocal = None
 

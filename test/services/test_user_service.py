@@ -77,7 +77,10 @@ class TestUserService(unittest.TestCase):
         current_user = self.user
         new_info = self.edit_user
         self.repo.get.return_value = current_user
-        with patch('services.user_service.check_password', return_value=True) as mocked_check_password:
+        with patch(
+                'services.user_service.check_password',
+                return_value=True
+        ) as mocked_check_password:
             # When
             self.user_service.update(username, new_info)
             # Then

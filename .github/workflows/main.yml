@@ -24,7 +24,7 @@ jobs:
       - name: Lint with flake8
         run: poetry run flake8 . --max-line-length=101
       - name: Check cyclomatic complexity
-        run: poetry run flake8 --max-complexity=10 .
+        run: poetry run flake8 --max-complexity=10 --max-line-length=101 .
 
   tests:
     name: Run Tests

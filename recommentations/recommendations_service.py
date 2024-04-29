@@ -67,7 +67,10 @@ class BaseRecommendationsService(RecommendationsService):
         for user in self.__user_service.list(limit=limit):
             for anime in user.anime:
                 if anime.mal_id in result_dict:
-                    result_dict[anime.mal_id] = (result_dict[anime.mal_id][0], result_dict[anime.mal_id][1] + 1)
+                    result_dict[anime.mal_id] = (
+                        result_dict[anime.mal_id][0],
+                        result_dict[anime.mal_id][1] + 1
+                    )
                 else:
                     result_dict[anime.mal_id] = (anime, 1)
         return list(result_dict.values())
