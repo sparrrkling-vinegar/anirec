@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import Mock, patch
 
+import services.user_service as user_service
 from repositories.schemas import CreateUser, User, EditUser
 from repositories.user_repository import UserRepository
-from services.user_service import UserService, UserAlreadyExists, WeakPassword, UserDoesNotExist, WrongPassword
 
 
 class TestUserService(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestUserService(unittest.TestCase):
 
     def setUp(self):
         self.repo = Mock(spec=UserRepository)
-        self.user_service = UserService(self.repo)
+        self.user_service = user_service.UserService(self.repo)
 
     def test_register_successfully(self):
         # Given
@@ -28,7 +28,7 @@ class TestUserService(unittest.TestCase):
         # Given
         self.repo.get.return_value = self.create_user
         # Then
-        with self.assertRaises(UserAlreadyExists):
+        with self.assertRaises(user_service.UserAlreadyExists):
             # When
             self.user_service.register(self.create_user)
 
@@ -37,7 +37,7 @@ class TestUserService(unittest.TestCase):
         self.repo.get.return_value = None
         with patch('services.user_service.check_password', return_value=False):
             # Then
-            with self.assertRaises(WeakPassword):
+            with self.assertRaises(user_service.WeakPassword):
                 # When
                 self.user_service.register(self.create_user)
 
@@ -57,7 +57,7 @@ class TestUserService(unittest.TestCase):
         password = self.user.password
         self.repo.get.return_value = None
         # Then
-        with self.assertRaises(UserDoesNotExist):
+        with self.assertRaises(user_service.UserDoesNotExist):
             # When
             self.user_service.login(username, password)
 
@@ -67,7 +67,7 @@ class TestUserService(unittest.TestCase):
         password = self.user.password + 'wrong password'
         self.repo.get.return_value = self.user
         # Then
-        with self.assertRaises(WrongPassword):
+        with self.assertRaises(user_service.WrongPassword):
             # When
             self.user_service.login(username, password)
 
@@ -84,3 +84,27 @@ class TestUserService(unittest.TestCase):
             mocked_check_password.assert_called_once_with(new_info.password)
             self.repo.edit.assert_called_once_with(username, new_info)
             self.repo.get.assert_called_with(username)
+
+    def test_check_valid_password(self):
+        result = user_service.check_password("1ASDdsa!")
+        self.assertEqual(result, True)
+
+    def test_check_short_password(self):
+        result = user_service.check_password("1ASDdsa")
+        self.assertEqual(result, False)
+
+    def test_check_password_without_digits(self):
+        result = user_service.check_password("ASDdsasa!")
+        self.assertEqual(result, False)
+
+    def test_check_password_without_special_symbol(self):
+        result = user_service.check_password("1ASDdsaqwe")
+        self.assertEqual(result, False)
+
+    def test_check_password_lower_case(self):
+        result = user_service.check_password("1ASDDSA!")
+        self.assertEqual(result, False)
+
+    def test_check_password_upper_case(self):
+        result = user_service.check_password("1asddsa!")
+        self.assertEqual(result, False)

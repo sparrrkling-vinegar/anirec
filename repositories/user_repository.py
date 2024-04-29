@@ -49,22 +49,24 @@ class UserRepository:
     def add_anime(self, username: str, mal_id: int):
         db_user = self.db.query(User).filter(User.username == username).first()
         if db_user is None or mal_id in map(lambda x: x.mal_id, db_user.anime):
-            return
+            return False
         db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
         if db_anime is None:
-            return
+            return False
         db_user.anime.append(db_anime)
         self.db.commit()
+        return True
 
     def delete_anime(self, username: str, mal_id: int):
         db_user = self.db.query(User).filter(User.username == username).first()
         if db_user is None or mal_id not in map(lambda x: x.mal_id, db_user.anime):
-            return
+            return False
         db_anime = self.db.query(Anime).filter(Anime.mal_id == mal_id).first()
         if db_anime is None:
-            return
+            return False
         db_user.anime.remove(db_anime)
         self.db.commit()
+        return True
 
     def list(self, skip: int = 0, limit: int = 100) -> List[schemas.User]:
         return list(

@@ -1,7 +1,6 @@
 import re
 
 from repositories import schemas
-import schemas
 from typing import List
 from repositories.user_repository import UserRepository
 
@@ -22,7 +21,7 @@ class WeakPassword(Exception):
     pass
 
 
-def check_password(password: str):
+def check_password(password: str) -> bool:
     # Password should at least be 8 characters long, have a number, an uppercase and a lowercase letter,
     # and a special character
     # TODO: for debugging only!
@@ -41,7 +40,7 @@ class UserService:
     def __init__(self, user_repository: UserRepository):
         self.__user_repository = user_repository
 
-    def register(self, user: schemas.CreateUser):
+    def register(self, user: schemas.CreateUser) -> None:
         if self.__user_repository.get(user.username) is not None:
             raise UserAlreadyExists()
         if not check_password(user.password):

@@ -4,7 +4,7 @@ from typing import List
 
 import jwt
 from fastapi import FastAPI, Request, Form, HTTPException, UploadFile, File, Depends
-from fastapi.responses import  JSONResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -18,15 +18,13 @@ from repositories.anime_repository import AnimeRepository
 from repositories.user_repository import UserRepository
 from services.anime_service import AnimeAlreadyExists, AnimeService
 from services.enroll_service import EnrollService
-from services.user_service import UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword, UserServiceFactory, UserService
+from services.user_service import UserDoesNotExist, WrongPassword, UserAlreadyExists, WeakPassword, UserService
 from svc import schemas as svc_schemas
 
 from svc.myanimelist_service import AnimeApiService, BaseAnimeApiService
-import typing
 import base64
 
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
 
 app = FastAPI()
 app.mount("/user_photos", StaticFiles(directory="user_photos"), name="user_photos")
@@ -55,13 +53,16 @@ recommendations_service: RecommendationsService = BaseRecommendationsService(
     anime_api_service=anime_list
 )
 
+
 class UnauthorizedException(HTTPException):
     def __init__(self):
         super().__init__(status_code=401, detail="Unauthorized Access")
 
+
 @app.exception_handler(UnauthorizedException)
 async def unauthorized_exception_handler(request: Request, exc: UnauthorizedException):
     return RedirectResponse(url="/", status_code=303)
+
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
@@ -69,6 +70,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         return RedirectResponse(url="/", status_code=303)
     # Handle other HTTP exceptions or pass them through
     return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
+
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
@@ -136,9 +138,9 @@ def get_current_user(token: str):
     except jwt.PyJWTError:
         raise credentials_exception
 
-    user = user_service.get(username)
-
-    if user is None:
+    try:
+        user = user_service.get(username)
+    except UserDoesNotExist:
         raise credentials_exception
 
     return user
@@ -190,10 +192,7 @@ async def account(request: Request):
     if token is None:
         raise UnauthorizedException()
 
-    try:
-        user = user_service.get(username=user.username)
-    except UserDoesNotExist:
-        return "User does not exist."
+    user = get_current_user(token)
 
     fallback_photo = base64.b64encode(open("user_photos/rmol.png", "rb").read()).decode()
     user_photo_b64 = fallback_photo
@@ -218,8 +217,6 @@ async def update_account(request: Request, password: str = Form(None), photo: Up
     if token is None:
         raise UnauthorizedException()
 
-    user_service = UserServiceFactory.make()
-
     user = get_current_user(token)
 
     def error_response_factory(error: str) -> HTMLResponse:
@@ -239,7 +236,6 @@ async def update_account(request: Request, password: str = Form(None), photo: Up
     if photo is not None:
         data = await photo.read()
 
-
     try:
         user_service.update(
             user.username,
@@ -250,7 +246,6 @@ async def update_account(request: Request, password: str = Form(None), photo: Up
         )
 
         print("zalupa", user.icon)
-
 
     except WeakPassword:
         return error_response_factory("Weak password")
