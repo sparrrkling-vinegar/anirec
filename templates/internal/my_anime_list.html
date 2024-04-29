@@ -39,7 +39,9 @@
         window.addEventListener('DOMContentLoaded', (event) => {
             const myAnimeList = document.getElementById('myAnimeList');
             const animeDetailModal = new bootstrap.Modal(document.getElementById('animeDetailModal'), {keyboard: true});
-
+            const escapeHtml = (unsafe) => {
+                return unsafe.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+            }
             fetch('/my_anime_list', {
                 method: 'GET',
                 headers: {
@@ -51,7 +53,7 @@
                     myAnimeList.innerHTML = data.length ?
                         data.map((item) =>
                             `<div class="d-flex justify-content-between align-items-center">
-                        <p style="cursor: pointer;" onclick="showAnimeDetails(${JSON.stringify(item).replace(/"/g, '&quot;')})">${item.title}</p>
+                        <p style="cursor: pointer;" onclick="showAnimeDetails(${escapeHtml(JSON.stringify(item))})">${item.title}</p>
                         <button onclick="deleteAnime(${item.mal_id})" class="btn btn-danger btn-sm">Delete</button>
                     </div>`
                         ).join('')

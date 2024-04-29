@@ -50,6 +50,9 @@
         const output = document.getElementById('output');
         const spinner = document.getElementById('spinner');
         const animeDetailModal = new bootstrap.Modal(document.getElementById('animeDetailModal'), {keyboard: true});
+        const escapeHtml = (unsafe) => {
+            return unsafe.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             generateBtn.addEventListener('click', () => {
@@ -64,7 +67,7 @@
                         output.style.display = 'block';
                         output.innerHTML = data.map(item =>
                             `<div class="d-flex justify-content-between align-items-center">
-                    <p style="cursor: pointer;" onclick="showAnimeDetails(${JSON.stringify(item).replace(/"/g, '&quot;')})">${item.title}</p>
+                    <p style="cursor: pointer;" onclick="showAnimeDetails(${escapeHtml(JSON.stringify(item))})">${item.title}</p>
                     <button onclick="postAddAnime(${item.mal_id})" class="btn btn-success btn-sm">Add</button>
                 </div>`
                         ).join('');

@@ -2,13 +2,26 @@ import unittest
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+
+ENDPOINT = "http://localhost:8000"
 
 
 class TestInternalPage(unittest.TestCase):
     def setUp(self):
-        # Set up Firefox WebDriver
         self.driver = webdriver.Firefox()
-        self.driver.get('http://localhost:8080/internal')
+
+        self.driver.get(f"{ENDPOINT}/signin")
+        username_input = self.driver.find_element(By.NAME, "username")
+        password_input = self.driver.find_element(By.NAME, "password")
+        submit_button = self.driver.find_element(By.CSS_SELECTOR, "input[type='submit']")
+
+        username_input.send_keys("testuser_internal" + Keys.RETURN)
+        password_input.send_keys("Secure!123Password" + Keys.RETURN)
+        submit_button.click()
+
+        self.driver.implicitly_wait(3)
+        self.driver.get(f'{ENDPOINT}/internal')
 
     def test_page_title(self):
         # Confirm that the internal page title is correct
@@ -27,8 +40,8 @@ class TestInternalPage(unittest.TestCase):
         # Check that navigation links (from the base template) are present and correctly linked
         links = {
             "Search": "/search_page",
-            "Generate": "/recommendation",
             "Home": "/internal",
+            "Generate": "/recommendation",
             "Logout": "/logout",
             "Account Details": "/account"
         }

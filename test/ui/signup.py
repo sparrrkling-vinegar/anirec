@@ -3,12 +3,13 @@ import unittest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
+ENDPOINT="http://localhost:8000"
 
 class TestSignupPage(unittest.TestCase):
     def setUp(self):
         # Set up the Firefox WebDriver
         self.driver = webdriver.Firefox()
-        self.driver.get('http://localhost:8080/signup')
+        self.driver.get(f'{ENDPOINT}/signup')
 
     def test_title(self):
         # Check if the page title is correct
