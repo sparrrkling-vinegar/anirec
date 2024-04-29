@@ -106,4 +106,5 @@ jobs:
 
       - name: Run Selenium tests with Poetry
         run: |
-          poetry run pytest test/ui/ui.py
+          poetry run pytest ./test/ui/index.py ./test/ui/internal.py ./test/ui/login.py ./test/ui/recommendation.py ./test/ui/search.py ./test/ui/signup.py
+        
