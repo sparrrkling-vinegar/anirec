@@ -16,8 +16,10 @@ jobs:
           python-version: 3.11
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+          sudo apt update -y && \
+          sudo apt install -y sqlcipher libsqlcipher-dev && \
+          python -m pip install --upgrade pip && \
+          pip install poetry && \
           poetry install
       - name: Lint with flake8
         run: poetry run flake8 . --max-line-length=101
@@ -36,8 +38,10 @@ jobs:
           python-version: 3.11
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+          sudo apt update -y && \
+          sudo apt install -y sqlcipher libsqlcipher-dev && \
+          python -m pip install --upgrade pip && \
+          pip install poetry && \
           poetry install
       - name: Run Tests
         run: poetry run pytest --cov . --cov-branch --cov-report=term --cov-fail-under=60
@@ -52,8 +56,10 @@ jobs:
           python-version: 3.11
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+          sudo apt update -y && \
+          sudo apt install -y sqlcipher libsqlcipher-dev && \
+          python -m pip install --upgrade pip && \
+          pip install poetry && \
           poetry install
       - name: Run bandit
         run: poetry run bandit -r .
