@@ -45,6 +45,9 @@ jobs:
           poetry install
       - name: Run Tests
         run: poetry run pytest --cov . --cov-branch --cov-report=term --cov-fail-under=60
+        env:
+          DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
 
   bandit:
     runs-on: ubuntu-latest

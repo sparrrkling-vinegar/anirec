@@ -1,11 +1,11 @@
+import os
+
 from sqlalchemy.orm import sessionmaker
 
 from database.database import DataAccessLayer
-
 from database.models import *
 
-# TODO: move to .env configuration
-DATABASE_PASSWORD = "abobus"
+DATABASE_PASSWORD = os.environ["DATABASE_PASSWORD"]
 
 SQLALCHEMY_DATABASE_URL = f'sqlite+pysqlcipher://:{DATABASE_PASSWORD}@/anirec.db?cipher=aes-256-cfb&kdf_iter=64000'
 dal = None
