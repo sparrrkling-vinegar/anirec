@@ -18,10 +18,9 @@ class TestHomePage(unittest.TestCase):
         self.driver = webdriver.Firefox(options=options)
         self.driver.implicitly_wait(15)
 
-
     def test_home_page_loaded(self):
         self.driver.get(API_URL)
-        self.assertTrue( self.driver.title_contains('Index Page'))
+        self.assertTrue(self.driver.title_contains('AnimeRec'))
 
     def test_home_page_navigation(self):
         self.driver.get(API_URL)

@@ -27,7 +27,6 @@ class TestInternalPage(unittest.TestCase):
 
         self.driver.implicitly_wait(15)
 
-
     def test_page_title(self):
         # Confirm that the internal page title is correct
         self.driver.get(f'{API_URL}/internal')

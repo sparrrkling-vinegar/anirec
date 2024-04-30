@@ -1,16 +1,23 @@
 {% extends "base.html" %}
 
 {% block title %}
-<title>Index Page</title>
+<title>AnimeRec</title>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-5 text-center">
-    <h2>Welcome to Our Project!</h2>
+    <h2>Welcome to AnimeRec!</h2>
     <p class="lead">
-       This is a brief text describing your project. It might include the purpose of the project,
-       the technologies used, or any other relevant information for readers who might not be familiar with your project.
+        Discover a world tailored to your anime tastes! AnimeRec offers a personalized destination for all anime lovers. Whether you are new to anime or a veteran otaku, our service caters to all your anime exploration needs.
     </p>
+
+    <ul class="list-unstyled pt-3 text-start">
+        <li><strong>Personalized Recommendations:</strong> Based on your favorite animes, our service generates a list of 10 new animes for you to discover and enjoy.</li>
+        <li><strong>Search for Animes:</strong> Use our comprehensive search tool to find specific anime titles based on your interests. Our vast database is at your disposal!</li>
+        <li><strong>Extensive Anime Descriptions:</strong> Get wide descriptions and detailed insights into key information that enriches your viewing experience.</li>
+        <li><strong>Profile Management:</strong> Save and manage your favorite animes in your profile!</li>
+    </ul>
+
     <div class="mt-3">
         <a href="/signin" class="btn btn-primary">Login</a>
         <a href="/signup" class="btn btn-secondary ms-2">Sign Up</a>
