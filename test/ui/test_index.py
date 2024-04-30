@@ -20,7 +20,7 @@ class TestHomePage(unittest.TestCase):
 
     def test_home_page_loaded(self):
         self.driver.get(API_URL)
-        self.assertTrue(self.driver.title_contains('AnimeRec'))
+        self.assertIn('AnimeRec', self.driver.title)
 
     def test_home_page_navigation(self):
         self.driver.get(API_URL)

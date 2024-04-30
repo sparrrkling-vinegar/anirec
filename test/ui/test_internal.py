@@ -1,4 +1,5 @@
 import unittest
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,6 +9,31 @@ from selenium.webdriver.firefox.options import Options
 API_URL = "http://anirec.ddns.net"
 username = "testuser_internal"
 password = "Secure!123Password"
+
+
+def submit_signup_form(api_url, username, password):
+    """
+    Submit the signup form.
+    :param api_url: Base URL of the API
+    :param username: Username for signup
+    :param password: Password for signup
+    """
+    data = {
+        'username': username,
+        'password': password
+    }
+    response = requests.post(f"{api_url}/signup", data=data)
+    if response.status_code == 303:  # Expecting a redirect on success
+        return f"Signup successful, redirected to: {response.headers['Location']}"
+    else:
+        try:
+            # Assuming error details are provided in response's HTML or text
+            return response.text
+        except Exception as e:
+            return f"An error occurred: {str(e)}"
+
+
+submit_signup_form(API_URL, username, password)
 
 
 class TestInternalPage(unittest.TestCase):
