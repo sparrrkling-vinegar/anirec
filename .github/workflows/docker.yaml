@@ -6,11 +6,13 @@ on:
     paths:
       - '**.py'
       - '**.html'
+      - '!test/**'
     branches: [ "main" ]
   pull_request:
     paths:
       - '**.py'
       - '**.html'
+      - '!test/**'
     branches: [ "main" ]
 
 
