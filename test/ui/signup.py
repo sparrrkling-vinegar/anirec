@@ -2,19 +2,30 @@ import unittest
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
+
+API_URL = "http://anirec.ddns.net"
+username = "testuser_internal"
+password = "Secure!123Password"
 
 
 class TestSignupPage(unittest.TestCase):
     def setUp(self):
-        # Set up the Firefox WebDriver
-        self.driver = webdriver.Firefox()
-        self.driver.get('http://localhost:8080/signup')
+        options = Options()
+        options.add_argument("--headless")
+        self.driver = webdriver.Firefox(options=options)
+
+        self.driver.implicitly_wait(15)
 
     def test_title(self):
+        self.driver.get(f'{API_URL}/signup')
+
         # Check if the page title is correct
         self.assertIn('New user', self.driver.title)
 
     def test_username_password_inputs(self):
+        self.driver.get(f'{API_URL}/signup')
+
         # Check for existence and proper labeling of username and password inputs
         username_input = self.driver.find_element(By.ID, "form2Example1")
         password_input = self.driver.find_element(By.ID, "form2Example2")
@@ -31,19 +42,13 @@ class TestSignupPage(unittest.TestCase):
         self.assertEqual(password_label.text, 'Password')
 
     def test_signup_action(self):
+        self.driver.get(f'{API_URL}/signup')
+
         # Simulate user input and submit action for the signup form
         self.driver.find_element(By.ID, "form2Example1").send_keys("new_user")
         self.driver.find_element(By.ID, "form2Example2").send_keys("new_password123")
         self.driver.find_element(By.CSS_SELECTOR, "input[type='submit']").click()
 
-        # Further actions to check for successful signup could be added here, e.g.,
-        # redirection, success message,
-        # or checking error elements if validations fail or display an error message.
-
     def tearDown(self):
         # Close the browser window on test completion
         self.driver.close()
-
-
-if __name__ == "__main__":
-    unittest.main()

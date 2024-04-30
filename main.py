@@ -326,7 +326,6 @@ async def add_anime(request: Request, add: AddAnime):
     user = get_current_user(token)
     enrollment_service.connect(user.username, add.mal_id)
 
-    print(f"Add button clicked on anime {add.mal_id}")
     return {"details": f"{add.mal_id}"}
 
 
