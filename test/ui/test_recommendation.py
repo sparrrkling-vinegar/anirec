@@ -27,15 +27,17 @@ class TestRecommendationPage(unittest.TestCase):
         password_input.send_keys(password + Keys.RETURN)
         submit_button.click()
 
-        self.driver.implicitly_wait(3)
-        self.driver.get(f"{API_URL}/recommendation")
+        self.driver.implicitly_wait(15)
 
     def test_page_title(self):
-        # Confirm that the web page title is as expected
+        self.driver.get(f"{API_URL}/recommendation")
 
+        # Confirm that the web page title is as expected
         self.assertIn("Recommendation Page", self.driver.title)
 
     def test_generate_button_functionality(self):
+        self.driver.get(f"{API_URL}/recommendation")
+
         # Verify the presence of the Generate button
         generate_btn = WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.ID, "generateBtn"))
@@ -53,6 +55,8 @@ class TestRecommendationPage(unittest.TestCase):
         self.assertTrue(output_div.is_displayed(), "Recommendation is not displayed")
 
     def test_navigation_links(self):
+        self.driver.get(f"{API_URL}/recommendation")
+
         # Example of testing navigation links for its presence and correct destination href:
         search_link = self.driver.find_element(By.LINK_TEXT, 'Search')
         self.assertIn("/search_page", search_link.get_attribute('href'))

@@ -27,15 +27,18 @@ class TestSearchPage(unittest.TestCase):
         password_input.send_keys(password + Keys.RETURN)
         submit_button.click()
 
-        self.driver.implicitly_wait(3)
-        self.driver.get(f'{API_URL}/search_page')
+        self.driver.implicitly_wait(15)
 
     def test_page_title(self):
+        self.driver.get(f'{API_URL}/search_page')
+
         # Confirm that the page title is 'Search Page'
         self.assertIn('Search Page', self.driver.title)
 
     def test_search_functionality(self):
         # Ensure that search input and button are present
+        self.driver.get(f'{API_URL}/search_page')
+
         search_input = self.driver.find_element(By.ID, "searchInput")
         search_button = self.driver.find_element(By.ID, "searchBtn")
 
@@ -56,6 +59,8 @@ class TestSearchPage(unittest.TestCase):
         self.assertTrue(output_div.is_displayed(), "Output div is not displayed.")
 
     def test_navigation_links(self):
+        self.driver.get(f'{API_URL}/search_page')
+
         # Basic tests to ensure that navigation links are correctly set up
         home_link = self.driver.find_element(By.LINK_TEXT, 'Home')
         self.assertEqual(home_link.get_attribute('href'), f'{API_URL}/internal')

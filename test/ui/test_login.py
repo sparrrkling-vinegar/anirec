@@ -15,14 +15,18 @@ class TestLoginPage(unittest.TestCase):
         options.add_argument("--headless")
         self.driver = webdriver.Firefox(options=options)
 
+        self.driver.implicitly_wait(15)
+
     def test_title(self):
         # Test to check if the title of the login page is correct
         self.driver.get(f'{API_URL}/signin')
+
         self.assertIn('Welcome to AniRec!', self.driver.title)
 
     def test_form_inputs(self):
         # Test to ensure username and password inputs are correctly labeled and exist
         self.driver.get(f'{API_URL}/signin')
+
         username_input = self.driver.find_element(By.ID, "form2Example1")
         password_input = self.driver.find_element(By.ID, "form2Example2")
 
@@ -40,6 +44,7 @@ class TestLoginPage(unittest.TestCase):
     def test_login_action(self):
         # Test to simulate login action
         self.driver.get(f'{API_URL}/signin')
+
         self.driver.find_element(By.ID, "form2Example1").send_keys("testuser")
         self.driver.find_element(By.ID, "form2Example2").send_keys("password")
         self.driver.find_element(By.CSS_SELECTOR, "input[type='submit']").click()

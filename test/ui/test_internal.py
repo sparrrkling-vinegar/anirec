@@ -25,15 +25,18 @@ class TestInternalPage(unittest.TestCase):
         password_input.send_keys(password + Keys.RETURN)
         submit_button.click()
 
-        self.driver.implicitly_wait(3)
-        self.driver.get(f'{API_URL}/internal')
+        self.driver.implicitly_wait(15)
+
 
     def test_page_title(self):
         # Confirm that the internal page title is correct
+        self.driver.get(f'{API_URL}/internal')
         self.assertIn('Internal Page', self.driver.title)
 
     def test_welcome_message(self):
         # Ensure that the welcome message is displayed correctly
+        self.driver.get(f'{API_URL}/internal')
+
         welcome_message = self.driver.find_element(
             By.XPATH,
             "//h2[contains(text(), 'Welcome to Internal Page!')]"
@@ -42,6 +45,8 @@ class TestInternalPage(unittest.TestCase):
 
     def test_navigation_links(self):
         # Check that navigation links (from the base template) are present and correctly linked
+        self.driver.get(f'{API_URL}/internal')
+
         links = {
             "Search": "/search_page",
             "Home": "/internal",

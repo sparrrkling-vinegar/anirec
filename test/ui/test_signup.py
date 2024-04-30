@@ -15,13 +15,17 @@ class TestSignupPage(unittest.TestCase):
         options.add_argument("--headless")
         self.driver = webdriver.Firefox(options=options)
 
-        self.driver.get(f'{API_URL}/signup')
+        self.driver.implicitly_wait(15)
 
     def test_title(self):
+        self.driver.get(f'{API_URL}/signup')
+
         # Check if the page title is correct
         self.assertIn('New user', self.driver.title)
 
     def test_username_password_inputs(self):
+        self.driver.get(f'{API_URL}/signup')
+
         # Check for existence and proper labeling of username and password inputs
         username_input = self.driver.find_element(By.ID, "form2Example1")
         password_input = self.driver.find_element(By.ID, "form2Example2")
@@ -38,6 +42,8 @@ class TestSignupPage(unittest.TestCase):
         self.assertEqual(password_label.text, 'Password')
 
     def test_signup_action(self):
+        self.driver.get(f'{API_URL}/signup')
+
         # Simulate user input and submit action for the signup form
         self.driver.find_element(By.ID, "form2Example1").send_keys("new_user")
         self.driver.find_element(By.ID, "form2Example2").send_keys("new_password123")
